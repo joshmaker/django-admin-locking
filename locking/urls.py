@@ -1,9 +1,8 @@
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import, unicode_literals, division
 
 from django.conf.urls.defaults import patterns, url
 
 
 url_patterns = patterns('locking.views',
-    url(r'api/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/lock/$', name='lock'),
-    url(r'api/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/unlock/$', name='unlock'),
+    url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/$', name='lock-rest-api'),
 )

@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from datetime import datetime, timedelta
 
 from django.conf import settings
@@ -35,7 +37,6 @@ class LockingManager(models.Manager):
                 lock.locked_by = user
             elif lock.locked_by.id != user.id:
                 raise Lock.ObjectLockedError('This object is already locked by another user')
-
         lock.save()
         return lock
 

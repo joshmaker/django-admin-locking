@@ -1,2 +1,7 @@
+from __future__ import absolute_import, unicode_literals, division
 
-# class LockingAdminMixin(object):
+from .forms import LockingAdminModelForm
+
+
+class LockingAdminMixin(object):
+    form = LockingAdminModelForm

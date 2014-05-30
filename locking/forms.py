@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 
@@ -12,10 +14,15 @@ class LockingFormMixin(object):
             content_type = ContentType.objects.get_for_model(self.obj)
             try:
                 lock = Lock.objects.get(content_type=content_type, object_id=self.obj.id)
-            except self.obj.DoesNotExist:
+            except lock.DoesNotExist:
                 pass
             else:
                 if self.request.user != lock.locked_by:
+                    user_name = lock.locked_by.username
                     raise forms.ValidationError('You cannot save this object because'
-                        ' it is locked by user %s' % lock.locked_by.username)
+                                                ' it is locked by user %s' % user_name)
         return self.cleaned_data
+
+
+class LockingModelForm(LockingFormMixin, forms.ModelForm):
+    pass
