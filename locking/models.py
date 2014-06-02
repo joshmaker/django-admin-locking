@@ -3,9 +3,10 @@ from __future__ import absolute_import, unicode_literals, division
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils import timezone
 
 from .settings import EXPIRATION_SECONDS
 
@@ -16,9 +17,9 @@ __all__ = ('Lock', )
 class LockingManager(models.Manager):
     def delete_expired(self):
         """Delete all expired locks from the database"""
-        self.filter(expiration__lt=datetime.now()).delete()
+        self.filter(date_expires__lt=timezone.now()).delete()
 
-    def lock_for_user(self, ct_type, obj_id, user):
+    def lock_for_user(self, content_type, object_id, user):
         """
         Try to create a lock on a given instance to a user.
 
@@ -29,9 +30,9 @@ class LockingManager(models.Manager):
         """
 
         try:
-            lock = self.get(content_type=ct_type, object_id=obj_id)
+            lock = self.get(content_type=content_type, object_id=object_id)
         except Lock.DoesNotExist:
-            lock = Lock(content_type=ct_type, object_id=obj_id, user=user)
+            lock = Lock(content_type=content_type, object_id=object_id, locked_by=user)
         else:
             if lock.has_expired:
                 lock.locked_by = user
@@ -46,7 +47,7 @@ class Lock(models.Model):
     date_expires = models.DateTimeField()
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
 
     objects = LockingManager()
 
@@ -59,9 +60,16 @@ class Lock(models.Model):
 
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"
-        self.date_expires = datetime.now() + timedelta(seconds=EXPIRATION_SECONDS)
+        self.date_expires = timezone.now() + timedelta(seconds=EXPIRATION_SECONDS)
         super(Lock, self).save(*args, **kwargs)
 
     @property
     def has_expired(self):
-        return self.date_expires < datetime.now()
+        return self.date_expires < timezone.now()
+
+    @classmethod
+    def is_locked(cls, instance):
+        ct_type = ContentType.objects.get_for_model(instance)
+        return cls.objects.filter(content_type=ct_type,
+                                  object_id=instance.id,
+                                  date_expires__gte=timezone.now()).exists()

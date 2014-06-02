@@ -1,8 +1,10 @@
 from __future__ import absolute_import, unicode_literals, division
 
+import json
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.contenttypes.models import ContentType
-from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
@@ -23,12 +25,13 @@ class LockAPIView(View):
         if not request.user.has_perm(may_change):
             return HttpResponse(status=401)
         self.lock_ct_type = ContentType.objects.get(app_label=app, model=model)
-        super(LockAPIView, self).dispatch(request, app, model, object_id)
+        return super(LockAPIView, self).dispatch(request, app, model, object_id)
 
     def get(self, request, app, model, object_id):
         locks = Lock.objects.filter(content_type=self.lock_ct_type,
-                                    object_id=object_id)
-        return serializers.serialize('json', locks)
+                                    object_id=object_id).values('id', 'date_expires', 'locked_by')
+        return HttpResponse(json.dumps(list(locks), cls=DjangoJSONEncoder),
+                            content_type="application/json")
 
     def post(self, request, app, model, object_id):
         """Create or maintain a lock on an object"""

@@ -10,10 +10,10 @@ class LockingFormMixin(object):
 
     def clean(self):
         self.cleaned_data = super(LockingFormMixin, self).clean()
-        if self.obj.id:
-            content_type = ContentType.objects.get_for_model(self.obj)
+        if self.instance.id:
+            content_type = ContentType.objects.get_for_model(self.instance)
             try:
-                lock = Lock.objects.get(content_type=content_type, object_id=self.obj.id)
+                lock = Lock.objects.get(content_type=content_type, object_id=self.instance.id)
             except lock.DoesNotExist:
                 pass
             else:
