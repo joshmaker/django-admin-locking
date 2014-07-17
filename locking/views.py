@@ -56,7 +56,7 @@ class LockAPIView(View):
         # Check if the lock belongs to the user
         # or else if they have unlock permission
         user = request.user
-        if lock.user != user and not user.has_perm('locking.can_unlock'):
+        if lock.locked_by != user and not user.has_perm('locking.can_unlock'):
             return HttpResponse(401)
 
         lock.delete()
