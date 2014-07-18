@@ -20,7 +20,10 @@ class LockingAdminMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(LockingAdminMixin, self).__init__(*args, **kwargs)
-        self.list_display = self.list_display + ('is_locked', )
+        if hasattr(self.list_display, 'append'):
+            self.list_display.append('is_locked', )
+        else:
+            self.list_display = self.list_display + ('is_locked', )
 
         opts = self.model._meta
         self._model_info = (opts.app_label, opts.model_name)
