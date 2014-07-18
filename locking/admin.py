@@ -4,16 +4,15 @@ import json
 
 from django import forms
 from django.conf.urls import patterns, url
+from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 
-from .forms import LockingModelForm
 from .models import Lock
 from .settings import PING_SECONDS
 
 
 class LockingAdminMixin(object):
-    form = LockingModelForm
 
     class Media:
         js = ('locking/js/locking.js',)
@@ -24,6 +23,32 @@ class LockingAdminMixin(object):
 
         opts = self.model._meta
         self._model_info = (opts.app_label, opts.model_name)
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Patches the clean method of the admin form to confirm lock status
+
+        The forms clean method will now raise a validation error if the form
+        is locked by someone else.
+        """
+        form = super(LockingAdminMixin, self).get_form(request, obj, **kwargs)
+        old_clean = form.clean
+
+        def clean(self):
+            self.cleaned_data = old_clean(self)
+            if self.instance.id:
+                content_type = ContentType.objects.get_for_model(self.instance)
+                try:
+                    lock = Lock.objects.get(content_type=content_type, object_id=self.instance.id)
+                except Lock.DoesNotExist:
+                    pass
+                else:
+                    if request.user != lock.locked_by:
+                        user_name = lock.locked_by.username
+                        raise forms.ValidationError('You cannot save this object because'
+                                                    ' it is locked by user %s' % user_name)
+            return self.cleaned_data
+        form.clean = clean
+        return form
 
     def is_locked(self, obj):
         return Lock.is_locked(obj)
