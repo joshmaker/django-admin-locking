@@ -131,6 +131,7 @@
                         self.enabledForm();
                     },
                     401: function() {
+                        self.hasLock = false;
                         self.disableForm();
                     }
                 }
