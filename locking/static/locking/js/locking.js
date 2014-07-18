@@ -105,7 +105,7 @@
             this.getLock();
 
             // Attempt to get / maintain a lock every 15 seconds
-            setTimeout(function() { self.getLock(); }, 15000);
+            setInterval(function() { self.getLock(); }, 15000);
 
             // Unlock the form when leaving the page
             $(window).on('beforeunload', function() {
