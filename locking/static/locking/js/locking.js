@@ -1,6 +1,13 @@
 ;(function(window, document, undefined) {
     'use strict';
 
+    /**
+     * Global locking object
+     *
+     * Setup the global locking object and attach jQuery to it.
+     * Multiple versions of jquery may be installed, and we want
+     * to ensure that all locking code is using the same version.
+     */
     window.locking = window.locking || {};
     if (locking.jQuery === undefined) {
         locking.jQuery = (window.django !== undefined && django.jQuery !== undefined) ? django.jQuery : jQuery;
@@ -8,7 +15,9 @@
     var $ = locking.jQuery;
 
     /**
-     * Make AJAX calls to the locking API   
+     * Locking API Wrapper
+     *
+     * Makes asyncronous calls to lock or unlock an object
      */
     locking.API = function(opts) {
         this.init(opts);
@@ -44,6 +53,11 @@
         }
     });
 
+    /**
+     * Locking Form Plugin Registry
+     *
+     * Some form widgets may require custom logic for enabling / disabling them
+     */
     locking.LockingFormPlugins = {
         /**
          * List of custom enable / disable rules for special form inputs
@@ -64,26 +78,34 @@
         }
     };
 
+    /**
+     * LockingForm
+     *
+     * Used to setup locking on a given HTML form.
+     * Will attempt to create a lock on the related object on initialization
+     * and then again every 15 seconds.
+     */
     locking.LockingForm = function(form, opts) {
-        this.$form = $(form);
-        this.api = new locking.API({
-            appLabel: opts.appLabel,
-            modelName: opts.modelName,
-            objectID: opts.objectID
-        });
-        this.init();
+        this.init(form, opts);
     };
     $.extend(locking.LockingForm.prototype, {
         hasLock: false,
         formDisabled: false,
-        init: function() {
+        init: function(form, opts) {
             var self = this;
+
+            this.$form = $(form);
+            this.api = new locking.API({
+                appLabel: opts.appLabel,
+                modelName: opts.modelName,
+                objectID: opts.objectID
+            });
 
             // Attempt to get a lock
             this.getLock();
 
-            // Attempt to get / maintain a lock every 30 seconds
-            setTimeout(function() { self.getLock(); }, 30000);
+            // Attempt to get / maintain a lock every 15 seconds
+            setTimeout(function() { self.getLock(); }, 15000);
 
             // Unlock the form when leaving the page
             $(window).on('beforeunload', function() {
