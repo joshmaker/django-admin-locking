@@ -68,8 +68,8 @@ class Lock(models.Model):
         return self.date_expires < timezone.now()
 
     @classmethod
-    def is_locked(cls, instance):
-        ct_type = ContentType.objects.get_for_model(instance)
+    def is_locked(cls, obj):
+        ct_type = ContentType.objects.get_for_model(obj)
         return cls.objects.filter(content_type=ct_type,
-                                  object_id=instance.id,
+                                  object_id=obj.id,
                                   date_expires__gte=timezone.now()).exists()
