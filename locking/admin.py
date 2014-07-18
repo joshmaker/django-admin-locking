@@ -6,6 +6,7 @@ from django import forms
 from django.conf.urls import patterns, url
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 from django.http import HttpResponse
 
 from .models import Lock
@@ -15,7 +16,7 @@ from .settings import PING_SECONDS
 class LockingAdminMixin(object):
 
     class Media:
-        js = ('locking/js/locking.js',)
+        js = ('locking/js/locking.js', )
 
     def __init__(self, *args, **kwargs):
         super(LockingAdminMixin, self).__init__(*args, **kwargs)
@@ -67,25 +68,21 @@ class LockingAdminMixin(object):
 
     def locking_media(self, obj=None):
         return forms.Media(js=(
-            reverse('admin:locking_%s_%s_js' % self._model_info, 
+            reverse('admin:locking_%s_%s_js' % self._model_info,
                     kwargs={'object_id': obj.pk}
             ),
         ))
 
     def locking_js(self, request, object_id):
         app_label, model_name = self._model_info
-
         js_options = json.dumps({
             'appLabel': app_label,
             'modelName': model_name,
             'ping': PING_SECONDS,
             'objectID': object_id,
         })
-
-        js_code = "var lockingForm = new locking.LockingForm('{form_name}', {options});".format(
-            form_name=model_name + '_form', options=js_options)
-
-        return HttpResponse(js_code, content_type="application/json")
+        return render(request, 'locking/admin_form.js',
+            {'options': js_options}, content_type="application/json")
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
         if not add and getattr(obj, 'pk', False):
