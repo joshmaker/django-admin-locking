@@ -43,6 +43,7 @@ class LockingManager(models.Manager):
 
 
 class Lock(models.Model):
+    id = models.CharField(max_length=15, primary_key=True)
     locked_by = models.ForeignKey(settings.AUTH_USER_MODEL)
     date_expires = models.DateTimeField()
     content_type = models.ForeignKey(ContentType)
@@ -60,6 +61,7 @@ class Lock(models.Model):
 
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"
+        self.id = "%d.%d" % (self.content_type_id, self.object_id)
         self.date_expires = timezone.now() + timedelta(seconds=EXPIRATION_SECONDS)
         super(Lock, self).save(*args, **kwargs)
 
