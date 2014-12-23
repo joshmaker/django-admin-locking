@@ -65,16 +65,18 @@
         plugins: [],
 
         /**
-         * Add custom enable / disable rules
-         * @param {Function} enableFn function to enable some JS input widget
-         * @param {Function} disableFn function to disable some JS input widget
-         *                   return any :input fields disabled by this function
+         * Add custom enable / disable rules for plugins
+         * @param [...object] takes plugin objects that have both an 'enable'
+         *                    and 'disable' method
          */
-        register: function(enableFn, disableFn) {
-            this.plugins.push({
-                enable: enableFn,
-                disable: disableFn
-            });
+        register: function() {
+            for (var i = 0; i < arguments.length; i++) {
+                var plugin = arguments[i];
+                if (typeof plugin.enable !== 'function' || typeof plugin.disable !== 'function') {
+                    throw new Error("Plugin passed to register missing either 'enable' or 'disable' method");
+                }
+                this.plugins.push(plugin);
+            }
         }
     };
 
