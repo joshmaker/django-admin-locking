@@ -7,7 +7,6 @@ from django.conf.urls import patterns, url
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
-from django.http import HttpResponse
 
 from .models import Lock
 from .settings import PING_SECONDS
@@ -19,6 +18,7 @@ class LockingAdminMixin(object):
         js = ('locking/js/locking.js', )
 
     def __init__(self, *args, **kwargs):
+        """Appends the "is_locked" column to this admin's list_display"""
         super(LockingAdminMixin, self).__init__(*args, **kwargs)
         if hasattr(self.list_display, 'append'):
             self.list_display.append('is_locked', )
@@ -55,28 +55,24 @@ class LockingAdminMixin(object):
         return form
 
     def is_locked(self, obj):
+        """List Display column to show lock status"""
         return Lock.is_locked(obj)
     is_locked.allow_tags = True
     is_locked.short_description = 'Lock'
 
     def get_urls(self):
+        """Adds 'locking_admin_form_js' script to the available URLs"""
         urls = super(LockingAdminMixin, self).get_urls()
         locking_urls = patterns('',
             url(r'^locking.%s_%s_(?P<object_id>[0-9]+).js$' % self._model_info,
-                self.admin_site.admin_view(self.locking_js),
+                self.admin_site.admin_view(self.locking_admin_form_js),
                 name='locking_%s_%s_js' % self._model_info
-            ),
+                ),
         )
         return locking_urls + urls
 
-    def locking_media(self, obj=None):
-        return forms.Media(js=(
-            reverse('admin:locking_%s_%s_js' % self._model_info,
-                    kwargs={'object_id': obj.pk}
-            ),
-        ))
-
-    def locking_js(self, request, object_id):
+    def locking_admin_form_js(self, request, object_id):
+        """Render out JS code for locking a form for a given object_id on this admin"""
         app_label, model_name = self._model_info
         js_options = json.dumps({
             'appLabel': app_label,
@@ -87,9 +83,15 @@ class LockingAdminMixin(object):
         return render(request, 'locking/admin_form.js',
             {'options': js_options}, content_type="application/json")
 
+    def locking_admin_form_url(self, object_id):
+        """Get the URL for the locking admin form js for a given object_id on this admin"""
+        return reverse('admin:locking_%s_%s_js' % self._model_info,
+                       kwargs={'object_id': object_id})
+
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
+        """If editing an existing object, add form locking media to the media context"""
         if not add and getattr(obj, 'pk', False):
-            locking_media = self.locking_media(obj)
+            locking_media = forms.Media(js=(self.locking_admin_form_url(obj.pk), ))
             if isinstance(context['media'], basestring):
                 locking_media = unicode(locking_media)
             context['media'] += locking_media
