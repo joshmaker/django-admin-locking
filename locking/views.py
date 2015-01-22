@@ -20,6 +20,7 @@ class LockAPIView(View):
     @method_decorator(csrf_exempt)
     @method_decorator(login_required)
     def dispatch(self, request, app, model, object_id):
+        model = model.lower()
         # if the usr can't change the object, they shouldn't be allowed to change the lock
         may_change = '%s.change_%s' % (app, model)
         if not request.user.has_perm(may_change):

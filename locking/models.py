@@ -61,7 +61,7 @@ class Lock(models.Model):
 
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"
-        self.id = "%d.%d" % (self.content_type_id, self.object_id)
+        self.id = "%s.%s" % (self.content_type_id, self.object_id)
         self.date_expires = timezone.now() + timedelta(seconds=EXPIRATION_SECONDS)
         super(Lock, self).save(*args, **kwargs)
 
