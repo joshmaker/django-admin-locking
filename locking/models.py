@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.contenttypes import generic

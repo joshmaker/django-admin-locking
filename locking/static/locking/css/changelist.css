@@ -1,0 +1,12 @@
+.locking-status.is_locked {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background: transparent url('../img/lock.png') no-repeat 0 0;
+}
+.locking-status.is_locked:hover {
+    background-image: url('../img/unlock.png');
+}
+.locking-status.is_unlocked {
+    display: none;
+}

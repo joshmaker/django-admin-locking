@@ -4,6 +4,7 @@ import json
 
 from django import forms
 from django.conf.urls import patterns, url
+from django.contrib.admin.options import csrf_protect_m
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
@@ -13,9 +14,6 @@ from .settings import PING_SECONDS
 
 
 class LockingAdminMixin(object):
-
-    class Media:
-        js = ('locking/js/locking.js', )
 
     def __init__(self, *args, **kwargs):
         """Appends the "is_locked" column to this admin's list_display"""
@@ -27,6 +25,13 @@ class LockingAdminMixin(object):
 
         opts = self.model._meta
         self._model_info = (opts.app_label, opts.model_name)
+
+    @property
+    def media(self):
+        return super(LockingAdminMixin, self).media + forms.Media(
+            js=('locking/js/locking.js', self.locking_admin_changelist_js_url()),
+            css={'all': ('locking/css/changelist.css', )}
+        )
 
     def get_form(self, request, obj=None, **kwargs):
         """Patches the clean method of the admin form to confirm lock status
@@ -56,42 +61,69 @@ class LockingAdminMixin(object):
 
     def is_locked(self, obj):
         """List Display column to show lock status"""
-        return Lock.is_locked(obj)
+        lock_class = ''
+        lock_class = 'is_locked' if Lock.is_locked(obj) else 'is_unlocked'
+        return '<a id="locking-%s" class="locking-status %s"></a>' % (obj.pk, lock_class)
+
     is_locked.allow_tags = True
     is_locked.short_description = 'Lock'
+
+    @property
+    def locking_admin_form_js_url_name(self):
+        return 'admin_form_%s_%s_js' % self._model_info
+
+    @property
+    def locking_admin_changelist_js_url_name(self):
+        return 'admin_changelist_%s_%s_js' % self._model_info
 
     def get_urls(self):
         """Adds 'locking_admin_form_js' script to the available URLs"""
         urls = super(LockingAdminMixin, self).get_urls()
         locking_urls = patterns('',
-            url(r'^locking.%s_%s_(?P<object_id>[0-9]+).js$' % self._model_info,
+            # URL For Locking admin form JavaScript
+            url(r'^locking_form.%s_%s_(?P<object_id>[0-9]+).js$' % self._model_info,
                 self.admin_site.admin_view(self.locking_admin_form_js),
-                name='locking_%s_%s_js' % self._model_info
-                ),
+                name=self.locking_admin_form_js_url_name),
+
+            # URL For Locking admin changelist JavaScript
+            url(r'^locking_changelist.%s_%s.js$' % self._model_info,
+                self.admin_site.admin_view(self.locking_admin_changelist_js),
+                name=self.locking_admin_changelist_js_url_name),
         )
         return locking_urls + urls
 
-    def locking_admin_form_js(self, request, object_id):
-        """Render out JS code for locking a form for a given object_id on this admin"""
+    def get_json_options(self, object_id=None):
         app_label, model_name = self._model_info
-        js_options = json.dumps({
+        return json.dumps({
             'appLabel': app_label,
             'modelName': model_name,
             'ping': PING_SECONDS,
             'objectID': object_id,
         })
-        return render(request, 'locking/admin_form.js',
-            {'options': js_options}, content_type="application/json")
 
-    def locking_admin_form_url(self, object_id):
+    def locking_admin_form_js(self, request, object_id):
+        """Render out JS code for locking a form for a given object_id on this admin"""
+        return render(request, 'locking/admin_form.js',
+            {'options': self.get_json_options(object_id)}, content_type="application/json")
+
+    def locking_admin_form_js_url(self, object_id):
         """Get the URL for the locking admin form js for a given object_id on this admin"""
-        return reverse('admin:locking_%s_%s_js' % self._model_info,
-                       kwargs={'object_id': object_id})
+        return reverse('admin:' + self.locking_admin_form_js_url_name,
+            kwargs={'object_id': object_id})
+
+    def locking_admin_changelist_js(self, request):
+        """Render out JS code for locking a form for a given object_id on this admin"""
+        return render(request, 'locking/admin_changelist.js',
+            {'options': self.get_json_options()}, content_type="application/json")
+
+    def locking_admin_changelist_js_url(self):
+        """Get the URL for the locking admin form js for a given object_id on this admin"""
+        return reverse('admin:' + self.locking_admin_changelist_js_url_name)
 
     def render_change_form(self, request, context, add=False, obj=None, **kwargs):
         """If editing an existing object, add form locking media to the media context"""
         if not add and getattr(obj, 'pk', False):
-            locking_media = forms.Media(js=(self.locking_admin_form_url(obj.pk), ))
+            locking_media = forms.Media(js=(self.locking_admin_form_js_url(obj.pk), ))
             if isinstance(context['media'], basestring):
                 locking_media = unicode(locking_media)
             context['media'] += locking_media
