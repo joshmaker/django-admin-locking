@@ -1,4 +1,7 @@
+from django.contrib import admin
 from django.db import models
+
+from ..admin import LockingAdminMixin
 
 
 class BlogArticle(models.Model):
@@ -7,3 +10,9 @@ class BlogArticle(models.Model):
 
     class Meta:
         app_label = 'locking'
+
+
+class BlogArticleAdmin(LockingAdminMixin, admin.ModelAdmin):
+    pass
+
+admin.site.register(BlogArticle, BlogArticleAdmin)
