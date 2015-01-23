@@ -21,7 +21,8 @@
         var lockingForm = new LockingAdminForm($form, {
             appLabel: options.appLabel,
             modelName: options.modelName,
-            objectID: options.objectID
+            objectID: options.objectID,
+            ping: options.ping
         });
     });
 })(window.locking);

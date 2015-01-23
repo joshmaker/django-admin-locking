@@ -3,18 +3,25 @@
 
     var options = {{ options|safe }};
     var $ = locking.jQuery;
-    $(document).ready(function () {
-        $('.locking-status.locked').click(function () {
-            var $lock = $(this);
-            if (confirm("Are you sure you want to remove this lock?")) {
-                var api = new locking.API({
-                        appLabel: options.appLabel,
-                        modelName: options.modelName,
-                        objectID: $lock.data('object-id')
-                    });
-                api.unlock();
-                $lock.removeClass('unlock').addClass('lock');
-            }
+    var api = new locking.API({
+            appLabel: options.appLabel,
+            modelName: options.modelName,
         });
+
+    $(document).ready(function () {
+        function updateStatus () {
+            api.ajax({success: function (data) {
+                $('.locking-status').removeClass('locked');
+                for (var i = 0; i < data.length; i++) {
+                    $('#locking-' + data[i]['object_id']).addClass('locked');
+                }
+            }});
+        };
+
+        // Only run on changelist page
+        if (document.getElementById('changelist')) {
+            updateStatus();
+            setInterval(updateStatus, options.ping * 1000);
+        }
     });
 })(window.locking);

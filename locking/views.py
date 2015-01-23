@@ -37,7 +37,7 @@ class LockAPIView(View):
         return super(LockAPIView, self).dispatch(request, app, model, object_id)
 
     def get(self, request, app, model, object_id=None):
-        locks = Lock.objects.filter(content_type=self.lock_ct_type).values('id', 'date_expires', 'locked_by')
+        locks = Lock.objects.filter(content_type=self.lock_ct_type).values('object_id', 'date_expires', 'locked_by')
         if object_id:
             locks = locks.filter(object_id=object_id)
         return HttpResponse(json.dumps(list(locks), cls=DjangoJSONEncoder),

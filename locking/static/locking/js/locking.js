@@ -95,7 +95,7 @@
         formDisabled: false,
         init: function(form, opts) {
             var self = this;
-
+            this.ping = opts.ping;
             this.$form = $(form);
             this.api = new locking.API({
                 appLabel: opts.appLabel,
@@ -106,8 +106,8 @@
             // Attempt to get a lock
             this.getLock();
 
-            // Attempt to get / maintain a lock every 15 seconds
-            setInterval(function() { self.getLock(); }, 15000);
+            // Attempt to get / maintain a lock ever ping number of seconds
+            setInterval(function() { self.getLock(); }, self.ping * 1000);
 
             // Unlock the form when leaving the page
             $(window).on('beforeunload', function() {
