@@ -62,8 +62,9 @@ class LockingAdminMixin(object):
     def is_locked(self, obj):
         """List Display column to show lock status"""
         lock_class = ''
-        lock_class = 'is_locked' if Lock.is_locked(obj) else 'is_unlocked'
-        return '<a id="locking-%s" class="locking-status %s"></a>' % (obj.pk, lock_class)
+        lock_class = 'locked' if Lock.is_locked(obj) else 'unlocked'
+        return '<a id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status {lock_class}"></a>'.format(
+            obj_id=obj.pk, lock_class=lock_class)
 
     is_locked.allow_tags = True
     is_locked.short_description = 'Lock'

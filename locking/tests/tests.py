@@ -182,8 +182,9 @@ class TestAdmin(test.LiveServerTestCase):
         browser2.get(self.get_admin_url())
         elem_1 = browser2.find_element_by_id('locking-%s' % self.blog_article.pk)
         elem_2 = browser2.find_element_by_id('locking-%s' % self.blog_article_2.pk)
-        self.assertTrue('is_locked' in elem_1.get_attribute('class'))
-        self.assertFalse('is_locked' in elem_2.get_attribute('class'))
+
+        self.assertFalse('unlocked' in elem_1.get_attribute('class'))
+        self.assertTrue('unlocked' in elem_2.get_attribute('class'))
 
         # Browser 1 leaves the blog article change form, it is unlocked and
         # browser 2 is now able to get a lock on it
