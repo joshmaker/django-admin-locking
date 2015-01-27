@@ -1,7 +1,6 @@
 from __future__ import absolute_import, unicode_literals, division
 
 import json
-from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
