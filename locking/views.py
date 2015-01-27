@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals, division
 
 import json
+from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
@@ -37,7 +38,8 @@ class LockAPIView(View):
         return super(LockAPIView, self).dispatch(request, app, model, object_id)
 
     def get(self, request, app, model, object_id=None):
-        locks = Lock.objects.filter(content_type=self.lock_ct_type).values('object_id', 'date_expires', 'locked_by')
+        locks = Lock.objects.filter(content_type=self.lock_ct_type).unexpired().values(
+            'object_id', 'date_expires', 'locked_by')
         if object_id:
             locks = locks.filter(object_id=object_id)
         return HttpResponse(json.dumps(list(locks), cls=DjangoJSONEncoder),

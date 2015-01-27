@@ -22,8 +22,10 @@ class LockingAdminMixin(object):
         else:
             self.list_display = self.list_display + ('is_locked', )
 
-        opts = self.model._meta
-        self._model_info = (opts.app_label, opts.model_name)
+            opts = self.model._meta
+            # opts.model_name introduced in Django 1.6
+            model_name = getattr(opts, 'model_name', None) or opts.module_name.lower()
+        self._model_info = (opts.app_label, model_name)
 
     @property
     def media(self):

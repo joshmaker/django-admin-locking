@@ -5,7 +5,12 @@ from datetime import datetime, timedelta
 from selenium import webdriver
 
 from django import test
-from django.contrib.auth import get_user_model
+try:
+    from django.contrib.auth import get_user_model
+except ImportError:
+    # Django < 1.5
+    from django.contrib.auth.models import User
+    get_user_model = lambda: User
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
@@ -14,13 +19,17 @@ from .models import BlogArticle
 from ..models import Lock
 from ..settings import EXPIRATION_SECONDS
 
+__all__ = ['TestViews', 'TestAdmin']
+
 
 def user_factory(model, has_perm=True):
     content_type = ContentType.objects.get_for_model(model)
     username = 'user%d' % datetime.now().microsecond
     email = '%s@example.com' % username
     password = 'p@ssw0rd'
-    user = get_user_model().objects._create_user(username, email, password, is_staff=True, is_superuser=False)
+    user = get_user_model().objects.create_user(username, email, password)  # user will have is_staff = False
+    user.is_staff = True
+    user.save()
     if has_perm:
         codename = 'change_%s' % model._meta.object_name.lower()
         permission = Permission.objects.get(codename=codename, content_type=content_type)
@@ -183,8 +192,8 @@ class TestAdmin(test.LiveServerTestCase):
         elem_1 = browser2.find_element_by_id('locking-%s' % self.blog_article.pk)
         elem_2 = browser2.find_element_by_id('locking-%s' % self.blog_article_2.pk)
 
-        self.assertFalse('unlocked' in elem_1.get_attribute('class'))
-        self.assertTrue('unlocked' in elem_2.get_attribute('class'))
+        self.assertTrue('locked' in elem_1.get_attribute('class'))
+        self.assertFalse('locked' in elem_2.get_attribute('class'))
 
         # Browser 1 leaves the blog article change form, it is unlocked and
         # browser 2 is now able to get a lock on it

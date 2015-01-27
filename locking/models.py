@@ -14,7 +14,25 @@ from .settings import EXPIRATION_SECONDS
 __all__ = ('Lock', )
 
 
-class LockingManager(models.Manager):
+class QueryMixin(object):
+    def unexpired(self):
+        return self.filter(date_expires__gte=timezone.now())
+
+    # Django < 1.6
+    if not hasattr(models.query.QuerySet, 'first'):
+        def first(self):
+            try:
+                return self.all()[0]
+            except IndexError:
+                return None
+
+
+class LockingQuerySet(QueryMixin, models.query.QuerySet):
+    pass
+
+
+class LockingManager(QueryMixin, models.Manager):
+
     def delete_expired(self):
         """Delete all expired locks from the database"""
         self.filter(date_expires__lt=timezone.now()).delete()
@@ -41,10 +59,17 @@ class LockingManager(models.Manager):
         lock.save()
         return lock
 
+    def get_queryset(self):
+        return LockingQuerySet(self.model)
+
+    def get_query_set(self):
+        """Compatibility with Django < 1.6"""
+        return self.get_queryset()
+
 
 class Lock(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
-    locked_by = models.ForeignKey(settings.AUTH_USER_MODEL)
+    locked_by = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'))
     date_expires = models.DateTimeField()
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
@@ -74,4 +99,4 @@ class Lock(models.Model):
         ct_type = ContentType.objects.get_for_model(obj)
         return cls.objects.filter(content_type=ct_type,
                                   object_id=obj.id,
-                                  date_expires__gte=timezone.now()).exists()
+                                  ).unexpired().exists()
