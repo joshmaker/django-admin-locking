@@ -157,7 +157,8 @@ class TestAdmin(test.LiveServerTestCase):
         return url
 
     def get_browser(self, user, password):
-        browser = webdriver.Firefox()
+        browser = webdriver.PhantomJS()
+        browser.set_window_size(1120, 550)
         browser.get(self.get_admin_url())
         browser.find_element_by_id("id_username").send_keys(user.username)
         browser.find_element_by_id("id_password").send_keys(password)
