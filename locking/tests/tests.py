@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals, division
 
-import json
+import 
 from datetime import datetime, timedelta
 from selenium import webdriver
 
@@ -84,13 +84,13 @@ class TestViews(test.TestCase):
         rsp = client.get()
         self.assertEqual(rsp.status_code, 200)
         self.assertEqual(Lock.objects.count(), 0)
-        self.assertEqual(json.loads(rsp.content), [])
+        self.assertEqual(json.loads(rsp.content.decode()), [])
         user, _ = user_factory(self.blog_article)
         Lock.objects.create(locked_by=user,
                             content_type=self.article_content_type,
                             object_id=self.blog_article.pk)
         rsp = client.get()
-        result = json.loads(rsp.content)
+        result = json.loads(rsp.content.decode())
 
         self.assertEqual(len(result), 1)
         locked_by = result[0]['locked_by']
