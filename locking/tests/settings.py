@@ -1,6 +1,7 @@
 """Django settings for tests."""
 
 import os
+import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -47,8 +48,11 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/tmp/db.sqlite3',
     }
 }
+if 'test' in sys.argv:
+    DATABASES['default']['NAME'] = ':memory:'
 
 
 LANGUAGE_CODE = 'en-us'

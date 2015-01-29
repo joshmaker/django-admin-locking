@@ -22,6 +22,12 @@
     locking.API = function(opts) {
         this.init(opts);
     };
+    locking.ajax = {
+        num_pending: 0,
+        has_pending: function () {
+            return (this.num_pending > 0);
+        }
+    }
     $.extend(locking.API.prototype, {
         defaults: {
             hostURL: null,
@@ -43,6 +49,16 @@
                 async: true,
                 cache: false
             };
+            var self = this;
+            this._onAjaxStart();
+            if ('complete' in opts) {
+                if (!$.isArray(opts.complete)) {
+                    opts.complete = [opts.complete];
+                }
+            } else {
+                opts.complete = [];
+            }
+            opts.complete.push(self._onAjaxEnd);
             $.ajax($.extend(defaults, opts));
         },
         lock: function(opts) {
@@ -50,6 +66,12 @@
         },
         unlock: function(opts) {
             this.ajax($.extend({'type': 'DELETE'}, opts));
+        },
+        _onAjaxStart: function() {
+            locking.ajax.num_pending++;
+        },
+        _onAjaxEnd: function() {
+            locking.ajax.num_pending--;
         }
     });
 

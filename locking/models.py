@@ -39,7 +39,7 @@ class LockingManager(QueryMixin, models.Manager):
 
     def lock_for_user(self, content_type, object_id, user):
         """
-        Try to create a lock on a given instance to a user.
+        Try to create a lock for a user for a given content_type / object id.
 
         If a lock does not exist (or has expired) the current user gains a lock
         on this object. If another user already has a valid lock on this object,
@@ -58,6 +58,11 @@ class LockingManager(QueryMixin, models.Manager):
                 raise Lock.ObjectLockedError('This object is already locked by another user')
         lock.save()
         return lock
+
+    def lock_object_for_user(self, obj, user):
+        """Calls `lock_for_user` on a given object and user."""
+        ct_type = ContentType.objects.get_for_model(obj)
+        return self.lock_for_user(content_type=ct_type, object_id=obj.pk, user=user)
 
     def get_queryset(self):
         return LockingQuerySet(self.model)

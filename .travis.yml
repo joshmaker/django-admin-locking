@@ -1,20 +1,24 @@
 language: python
-
+python:
+  - "2.7"
+  - "3.4"
 env:
-    - TOX_ENV=py34-django17
-    - TOX_ENV=py27-django17
-    - TOX_ENV=py34-django16
-    - TOX_ENV=py27-django16
-    - TOX_ENV=py34-django15
-    - TOX_ENV=py27-django15
-    - TOX_ENV=py27-django14
-    - TOX_ENV=py34-django18alpha
-    - TOX_ENV=py27-django18alpha
-    - TOX_ENV=py34-djangomaster
-    - TOX_ENV=py27-djangomaster
-
+  - DJANGO_VERSION=1.4.19
+  - DJANGO_VERSION=1.5.12
+  - DJANGO_VERSION=1.6.10
+  - DJANGO_VERSION=1.7.4
+matrix:
+  exclude:
+    - python: "3.4"
+      env: DJANGO_VERSION=1.4.19
 install:
-  - pip install tox
-
+  - pip install -e .
+  - pip install django==$DJANGO_VERSION
+  - pip install selenium
+  - pip install coveralls
+before_script:
+  - python manage.py collectstatic --link --noinput
 script:
-    - tox -e $TOX_ENV
+  - coverage run manage.py test locking
+after_success:
+  coveralls
