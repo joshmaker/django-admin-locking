@@ -123,7 +123,11 @@ class LockingAdminMixin(object):
         """If editing an existing object, add form locking media to the media context"""
         if not add and getattr(obj, 'pk', False):
             locking_media = forms.Media(js=(self.locking_admin_form_js_url(obj.pk), ))
-            if isinstance(context['media'], basestring):
+            try:
+                str_type = basestring
+            except NameError:  # basestring does not exist in Python3
+                str_type = str
+            if isinstance(context['media'], str_type):
                 locking_media = unicode(locking_media)
             context['media'] += locking_media
         return super(LockingAdminMixin, self).render_change_form(
