@@ -11,7 +11,6 @@ except ImportError:
 from django.contrib.auth.models import Permission
 
 
-def user_factory(model, has_perm=True):
 def user_factory(model=None):
     username = 'user%d' % timezone.now().microsecond
     email = '%s@example.com' % username
@@ -19,7 +18,8 @@ def user_factory(model=None):
     user = get_user_model().objects.create_user(username, email, password)  # user will have is_staff = False
     user.is_staff = True
     user.save()
-    if has_perm:
+    if model:
+        content_type = ContentType.objects.get_for_model(model)
         for perm in ['add', 'change']:
             codename = '%s_%s' % (perm, model._meta.object_name.lower())
             permission = Permission.objects.get(codename=codename, content_type=content_type)
@@ -39,9 +39,10 @@ class LockingClient(object):
         self.client = test.Client()
         self.user = None
 
-    def login_new_user(self, *args, **kwargs):
+    def login_new_user(self, has_perm=True, *args, **kwargs):
         self.client.logout()
-        user, password = user_factory(self.instance, *args, **kwargs)
+        model_for_perm = self.instance if has_perm else None
+        user, password = user_factory(model_for_perm, *args, **kwargs)
         self.client.login(username=user.username, password=password)
         self.user = user
 

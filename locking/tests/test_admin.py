@@ -133,6 +133,24 @@ class TestLiveAdmin(test.LiveServerTestCase):
         self.assertTrue('locked' in elem_1.get_attribute('class'))
         self.assertFalse('locked' in elem_2.get_attribute('class'))
 
+    def test_save_locked_form(self):
+        locking_user, _ = user_factory(BlogArticle)
+        Lock.objects.lock_object_for_user(user=locking_user, obj=self.blog_article)
+
+        old_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
+
+        editing_user, password = user_factory(BlogArticle)
+        browser = self.get_browser(editing_user, password)
+        browser.get(self.get_admin_url(instance=self.blog_article))
+        self.assert_no_js_errors(browser)
+        browser.execute_script("document.getElementsByName('csrfmiddlewaretoken')[0].removeAttribute('disabled')")
+        browser.execute_script("document.getElementById('id_title').value = 'Edited Title'")
+        browser.execute_script("document.getElementById('blogarticle_form').submit()")
+
+        self.assertTrue('locked by user' in browser.page_source)
+        new_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
+        self.assertEqual(old_title, new_title)
+
     def tearDown(self):
         for browser in self.browsers:
             browser.quit()
