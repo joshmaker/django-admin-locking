@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from django import test
+from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 try:
@@ -13,8 +12,8 @@ from django.contrib.auth.models import Permission
 
 
 def user_factory(model, has_perm=True):
-    content_type = ContentType.objects.get_for_model(model)
-    username = 'user%d' % datetime.now().microsecond
+def user_factory(model=None):
+    username = 'user%d' % timezone.now().microsecond
     email = '%s@example.com' % username
     password = 'p@ssw0rd'
     user = get_user_model().objects.create_user(username, email, password)  # user will have is_staff = False

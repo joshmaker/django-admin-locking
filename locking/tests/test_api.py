@@ -1,9 +1,9 @@
 from __future__ import absolute_import, unicode_literals, division
 
 import json
-from datetime import datetime, timedelta
 
 from django import test
+from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 
 from .models import BlogArticle
@@ -44,10 +44,11 @@ class TestViews(test.TestCase):
         self.assertEqual(len(result), 1)
         locked_by = result[0]['locked_by']
         self.assertEqual(locked_by, user.pk)
-        date_expires = datetime.strptime(result[0]['date_expires'], "%Y-%m-%dT%H:%M:%S.%fz")
+        date_expires = timezone.datetime.strptime(result[0]['date_expires'], "%Y-%m-%dT%H:%M:%S.%fz")
+        date_expires = timezone.make_aware(date_expires, timezone.get_default_timezone())
         self.assertAlmostEqual(date_expires,
-                               datetime.now() + timedelta(seconds=EXPIRATION_SECONDS),
-                               delta=timedelta(seconds=30))
+                               timezone.now() + timezone.timedelta(seconds=EXPIRATION_SECONDS),
+                               delta=timezone.timedelta(seconds=30))
 
     def test_post(self):
 

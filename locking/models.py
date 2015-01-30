@@ -1,7 +1,5 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from datetime import timedelta
-
 from django.conf import settings
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
@@ -92,7 +90,7 @@ class Lock(models.Model):
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"
         self.id = "%s.%s" % (self.content_type_id, self.object_id)
-        self.date_expires = timezone.now() + timedelta(seconds=EXPIRATION_SECONDS)
+        self.date_expires = timezone.now() + timezone.timedelta(seconds=EXPIRATION_SECONDS)
         super(Lock, self).save(*args, **kwargs)
 
     @property
@@ -103,5 +101,5 @@ class Lock(models.Model):
     def is_locked(cls, obj):
         ct_type = ContentType.objects.get_for_model(obj)
         return cls.objects.filter(content_type=ct_type,
-                                  object_id=obj.id,
+                                  object_id=obj.pk,
                                   ).unexpired().exists()
