@@ -143,9 +143,11 @@ class TestLiveAdmin(test.LiveServerTestCase):
         browser = self.get_browser(editing_user, password)
         browser.get(self.get_admin_url(instance=self.blog_article))
         self.assert_no_js_errors(browser)
+        old_page_id = browser.find_element_by_tag_name('html').id
         browser.execute_script("document.getElementsByName('csrfmiddlewaretoken')[0].removeAttribute('disabled')")
         browser.execute_script("document.getElementById('id_title').value = 'Edited Title'")
         browser.execute_script("document.getElementById('blogarticle_form').submit()")
+        WebDriverWait(browser, 10).until(lambda b: b.find_element_by_tag_name('html').id != old_page_id)
 
         self.assertTrue('locked by user' in browser.page_source)
         new_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
