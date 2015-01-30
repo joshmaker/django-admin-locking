@@ -10,10 +10,31 @@ from .models import BlogArticle
 from .utils import user_factory
 from ..models import Lock
 
-__all__ = ['TestAdmin', ]
+__all__ = ['TestAdmin', 'TestLiveAdmin']
 
 
-class TestAdmin(test.LiveServerTestCase):
+class TestAdmin(test.TestCase):
+
+    def setUp(self):
+        self.blog_article = BlogArticle.objects.create(title="title", content="content")
+        user, password = user_factory(BlogArticle)
+        self.client.login(username=user.username, password=password)
+        self.user = user
+
+    def test_changelist_loads(self):
+        url = reverse('admin:locking_blogarticle_changelist')
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_addform_loads(self):
+        url = reverse('admin:locking_blogarticle_add')
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+    def test_changeform_loads(self):
+        url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+
+class TestLiveAdmin(test.LiveServerTestCase):
 
     def setUp(self):
         self.browsers = []
