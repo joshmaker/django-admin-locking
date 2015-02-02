@@ -11,9 +11,22 @@
     $(document).ready(function () {
         function updateStatus () {
             api.ajax({success: function (data) {
-                $('.locking-status').removeClass('locked');
+                var user, name, lockedClass, lockedMessage;
+                $('.locking-status').removeClass('locked').removeAttr('title');
                 for (var i = 0; i < data.length; i++) {
-                    $('#locking-' + data[i]['object_id']).addClass('locked');
+                    user = data[i]['locked_by'];
+                    if (user['username'] === options['currentUser']) {
+                        lockedMessage = "You are currently editing this";
+                        lockedClass = "editing";
+                    } else {
+                        name = user['first_name'] + ' ' + user['last_name'];
+                        if (name === ' ') {
+                            name = user['username'];
+                        }
+                        lockedMessage = 'Locked by ' + name + ' (' + user['email'] + ')';
+                        lockedClass = "locked";
+                    }
+                    $('#locking-' + data[i]['object_id']).addClass(lockedClass).attr('title', lockedMessage);
                 }
             }});
         };

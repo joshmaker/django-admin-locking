@@ -38,9 +38,17 @@ class LockAPIView(View):
 
     def get(self, request, app, model, object_id=None):
         locks = Lock.objects.filter(content_type=self.lock_ct_type).unexpired().values(
-            'object_id', 'date_expires', 'locked_by')
+            'object_id', 'date_expires', 'locked_by__username', 'locked_by__email',
+            'locked_by__first_name', 'locked_by__last_name')
         if object_id:
             locks = locks.filter(object_id=object_id)
+        for lock in locks:
+            lock['locked_by'] = {
+                'username': lock.pop('locked_by__username'),
+                'first_name': lock.pop('locked_by__first_name'),
+                'last_name': lock.pop('locked_by__last_name'),
+                'email': lock.pop('locked_by__email'),
+            }
         return HttpResponse(json.dumps(list(locks), cls=DjangoJSONEncoder),
                             content_type="application/json")
 

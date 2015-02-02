@@ -27,7 +27,7 @@
         has_pending: function () {
             return (this.num_pending > 0);
         }
-    }
+    };
     $.extend(locking.API.prototype, {
         defaults: {
             hostURL: null,
@@ -107,7 +107,7 @@
      *
      * Used to setup locking on a given HTML form.
      * Will attempt to create a lock on the related object on initialization
-     * and then again every 15 seconds.
+     * and then again every `self.ping` number of seconds.
      */
     locking.LockingForm = function(form, opts) {
         this.init(form, opts);
@@ -144,7 +144,7 @@
 
         /**
          * API Call to attempt to get a lock on this form
-         * and then enable or disbale the inputs on this form
+         * and then enable or disable the inputs on this form
          */
         getLock: function() {
             var self = this;

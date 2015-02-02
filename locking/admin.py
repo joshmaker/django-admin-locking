@@ -91,9 +91,10 @@ class LockingAdminMixin(object):
         )
         return locking_urls + urls
 
-    def get_json_options(self, object_id=None):
+    def get_json_options(self, request, object_id=None):
         app_label, model_name = self._model_info
         return json.dumps({
+            'currentUser': request.user.username,
             'appLabel': app_label,
             'modelName': model_name,
             'ping': PING_SECONDS,
@@ -103,7 +104,7 @@ class LockingAdminMixin(object):
     def locking_admin_form_js(self, request, object_id):
         """Render out JS code for locking a form for a given object_id on this admin"""
         return render(request, 'locking/admin_form.js',
-            {'options': self.get_json_options(object_id)}, content_type="application/json")
+            {'options': self.get_json_options(request, object_id)}, content_type="application/json")
 
     def locking_admin_form_js_url(self, object_id):
         """Get the URL for the locking admin form js for a given object_id on this admin"""
@@ -113,7 +114,7 @@ class LockingAdminMixin(object):
     def locking_admin_changelist_js(self, request):
         """Render out JS code for locking a form for a given object_id on this admin"""
         return render(request, 'locking/admin_changelist.js',
-            {'options': self.get_json_options()}, content_type="application/json")
+            {'options': self.get_json_options(request)}, content_type="application/json")
 
     def locking_admin_changelist_js_url(self):
         """Get the URL for the locking admin form js for a given object_id on this admin"""

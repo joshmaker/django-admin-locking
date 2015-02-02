@@ -12,7 +12,24 @@
         $.extend(LockingAdminForm.prototype, {
             disableForm: function() {
                 if (!this.formDisabled) {
-                    this.$form.prepend("<p class='errornote'>Form is locked</p>");
+                    // Disable Delete link
+                    // $('.deletelink').css({'cursor': 'not-allowed', 'opacity': 0.5}).click(false);
+
+                    this.$form.prepend('<ul class="messagelist"><li class="warning" id="locking-errornote">Form is locked</li></ul>');
+                    this.api.ajax({
+                        success: function (data) {
+                            var locker = data[0]['locked_by'],
+                                lockerName = locker.username;
+                            if (locker['first_name'] && locker['last_name']) {
+                                lockerName = locker['first_name'] + ' ' + locker['last_name'];
+                            }
+                            $("#locking-errornote").html('Form is locked by ' +
+                                                          lockerName +
+                                                          ' (<a href="mailto:' + locker.email + '">' +
+                                                            locker.email +
+                                                          '</a>)');
+                        }
+                    });
                 }
                 locking.LockingForm.prototype.disableForm.call(this);
             }

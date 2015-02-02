@@ -43,7 +43,8 @@ class TestViews(test.TestCase):
 
         self.assertEqual(len(result), 1)
         locked_by = result[0]['locked_by']
-        self.assertEqual(locked_by, user.pk)
+        self.assertEqual(locked_by, {'username': user.username, 'first_name': user.first_name,
+            'last_name': user.last_name, 'email': user.email})
         date_expires = timezone.datetime.strptime(result[0]['date_expires'], "%Y-%m-%dT%H:%M:%S.%fz")
         date_expires = timezone.make_aware(date_expires, timezone.get_default_timezone())
         self.assertAlmostEqual(date_expires,
