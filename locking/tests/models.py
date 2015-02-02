@@ -21,7 +21,7 @@ class BlogArticleAdmin(LockingAdminMixin, admin.ModelAdmin):
         media = super(BlogArticleAdmin, self).media
         media = forms.Media(js=('locking/js/test.js', )) + media
         # Django < 1.6 have too old a version of jquery in the admin
-        if VERSION[0] == 1 and VERSION[1] < 6:
+        if VERSION < (1, 6):
             media = forms.Media(js=('locking/js/locking.jquery-1.11.2.min.js', )) + media
         return media
 admin.site.register(BlogArticle, BlogArticleAdmin)

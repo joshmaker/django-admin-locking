@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals, division
 
+from django import VERSION
 from django.conf import settings
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
@@ -62,12 +63,15 @@ class LockingManager(QueryMixin, models.Manager):
         ct_type = ContentType.objects.get_for_model(obj)
         return self.lock_for_user(content_type=ct_type, object_id=obj.pk, user=user)
 
+    def for_object(self, obj):
+        ct_type = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type=ct_type, object_id=obj.pk).unexpired()
+
     def get_queryset(self):
         return LockingQuerySet(self.model)
 
-    def get_query_set(self):
-        """Compatibility with Django < 1.6"""
-        return self.get_queryset()
+    if VERSION < (1, 6):
+        get_query_set = get_queryset
 
 
 class Lock(models.Model):
@@ -98,8 +102,5 @@ class Lock(models.Model):
         return self.date_expires < timezone.now()
 
     @classmethod
-    def is_locked(cls, obj):
-        ct_type = ContentType.objects.get_for_model(obj)
-        return cls.objects.filter(content_type=ct_type,
-                                  object_id=obj.pk,
-                                  ).unexpired().exists()
+    def is_locked(cls, obj, for_user=None):
+        return cls.objects.for_object(obj=obj).exclude(locked_by=for_user).exists()

@@ -149,7 +149,7 @@ class TestLiveAdmin(test.LiveServerTestCase):
         browser.execute_script("document.getElementById('blogarticle_form').submit()")
         WebDriverWait(browser, 10).until(lambda b: b.find_element_by_tag_name('html').id != old_page_id)
 
-        self.assertTrue('locked by user' in browser.page_source)
+        self.assertTrue('locked by' in browser.page_source)
         new_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
         self.assertEqual(old_title, new_title)
 

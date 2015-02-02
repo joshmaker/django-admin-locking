@@ -4,12 +4,24 @@ import json
 
 from django import forms
 from django.conf.urls import patterns, url
-from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
 from .models import Lock
 from .settings import PING_SECONDS
+
+
+class LockingValidationError(forms.ValidationError):
+    msg = 'You cannot {action} this object because it is locked by {name} ({email})'
+
+    def __init__(self, lock, action):
+        locked_by = lock.locked_by
+        if locked_by.first_name and locked_by.last_name:
+            locked_by_name = '%s %s' % (locked_by.first_name, locked_by.last_name)
+        else:
+            locked_by_name = locked_by.username
+        super(LockingValidationError, self).__init__(self.msg.format(action=action,
+            name=locked_by_name, email=locked_by.email))
 
 
 class LockingAdminMixin(object):
@@ -45,18 +57,10 @@ class LockingAdminMixin(object):
 
         def clean(self):
             self.cleaned_data = old_clean(self)
-            if self.instance.id:
-                content_type = ContentType.objects.get_for_model(self.instance)
-                try:
-                    lock = Lock.objects.get(content_type=content_type, object_id=self.instance.id)
-                except Lock.DoesNotExist:
-                    pass
-                else:
-                    if request.user != lock.locked_by:
-                        user_name = lock.locked_by.username
-                        raise forms.ValidationError('You cannot save this object because'
-                                                    ' it is locked by user %s' % user_name)
-            return self.cleaned_data
+            if self.instance.id and Lock.is_locked(obj):
+                lock = Lock.objects.for_object(obj)[0]
+                raise LockingValidationError(lock, 'save')
+                return self.cleaned_data
         form.clean = clean
         return form
 
