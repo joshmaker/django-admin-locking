@@ -66,3 +66,10 @@ class TestLock(test.TestCase):
         self.assertFalse(Lock.is_locked(article))
         Lock.objects.create(locked_by=self.user, content_type=self.article_ct, object_id=article.pk)
         self.assertTrue(Lock.is_locked(article))
+
+    def test_lock_object_for_user(self):
+        Lock.objects.lock_object_for_user(self.article1, self.user)
+        lock = Lock.objects.first()
+        self.assertEqual(lock.locked_by_id, self.user.pk)
+        self.assertEqual(lock.object_id, self.article1.pk)
+        self.assertEqual(lock.content_type, self.article_ct)
