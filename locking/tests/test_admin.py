@@ -8,7 +8,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .models import BlogArticle
 from .utils import user_factory
-from ..admin import LockingValidationError
 from ..models import Lock
 
 __all__ = ['TestAdmin', 'TestLiveAdmin']
@@ -42,7 +41,7 @@ class TestAdmin(test.TestCase):
         self.assertEqual(article.content, 'updated content')
 
     def test_save_locked_by_user(self):
-        Lock.objects.lock_object_for_user(self.blog_article, self.user)
+        # Lock.objects.lock_object_for_user(self.blog_article, self.user)
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
         article = BlogArticle.objects.get(pk=self.blog_article.pk)
@@ -54,8 +53,7 @@ class TestAdmin(test.TestCase):
         Lock.objects.lock_object_for_user(self.blog_article, other_user)
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         article = BlogArticle.objects.get(pk=self.blog_article.pk)
-        self.assertRaises(LockingValidationError, self.client.post, url,
-            {'title': 'updated title', 'content': 'updated content'})
+        self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
         self.assertEqual(article.title, 'title')
         self.assertEqual(article.content, 'content')
 
@@ -74,7 +72,7 @@ class TestAdmin(test.TestCase):
         other_user, _ = user_factory()
         Lock.objects.lock_object_for_user(self.blog_article, other_user)
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
-        self.assertRaises(LockingValidationError, self.client.post, url, {'post': 'yes'})
+        self.client.post(url, {'post': 'yes'})
         self.assertEqual(BlogArticle.objects.count(), 1)
 
 
