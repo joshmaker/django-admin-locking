@@ -20,7 +20,7 @@ def user_factory(model=None):
     user.save()
     if model:
         content_type = ContentType.objects.get_for_model(model)
-        for perm in ['add', 'change']:
+        for perm in ['add', 'change', 'delete']:
             codename = '%s_%s' % (perm, model._meta.object_name.lower())
             permission = Permission.objects.get(codename=codename, content_type=content_type)
             user.user_permissions.add(permission)

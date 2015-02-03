@@ -64,6 +64,12 @@ class LockingAdminMixin(object):
         form.clean = clean
         return form
 
+    def delete_model(self, request, obj, **kwargs):
+        if Lock.is_locked(obj, for_user=request.user):
+            lock = Lock.objects.for_object(obj)[0]
+            raise LockingValidationError(lock, 'delete')
+        super(LockingAdminMixin, self).delete_model(request, obj, **kwargs)
+
     def is_locked(self, obj):
         """List Display column to show lock status"""
         return '<a id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status"></a>'.format(obj_id=obj.pk)

@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .models import BlogArticle
 from .utils import user_factory
+from ..admin import LockingValidationError
 from ..models import Lock
 
 __all__ = ['TestAdmin', 'TestLiveAdmin']
@@ -33,6 +34,24 @@ class TestAdmin(test.TestCase):
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.assertEqual(self.client.get(url).status_code, 200)
 
+
+    def test_delete_unlocked(self):
+        url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
+        self.client.post(url, {'post': 'yes'})
+        self.assertEqual(BlogArticle.objects.count(), 0)
+
+    def test_delete_locked_by_user(self):
+        Lock.objects.lock_object_for_user(self.blog_article, self.user)
+        url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
+        self.client.post(url, {'post': 'yes'})
+        self.assertEqual(BlogArticle.objects.count(), 0)
+
+    def test_delete_locked_by_other_user(self):
+        other_user, _ = user_factory()
+        Lock.objects.lock_object_for_user(self.blog_article, other_user)
+        url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
+        self.assertRaises(LockingValidationError, self.client.post, url, {'post': 'yes'})
+        self.assertEqual(BlogArticle.objects.count(), 1)
 
 class TestLiveAdmin(test.LiveServerTestCase):
 
