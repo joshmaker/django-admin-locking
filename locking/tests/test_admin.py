@@ -34,6 +34,30 @@ class TestAdmin(test.TestCase):
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.assertEqual(self.client.get(url).status_code, 200)
 
+    def test_save_unlocked(self):
+        url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
+        self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
+        article = BlogArticle.objects.get(pk=self.blog_article.pk)
+        self.assertEqual(article.title, 'updated title')
+        self.assertEqual(article.content, 'updated content')
+
+    def test_save_locked_by_user(self):
+        Lock.objects.lock_object_for_user(self.blog_article, self.user)
+        url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
+        self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
+        article = BlogArticle.objects.get(pk=self.blog_article.pk)
+        self.assertEqual(article.title, 'updated title')
+        self.assertEqual(article.content, 'updated content')
+
+    def test_save_locked_by_other_user(self):
+        other_user, _ = user_factory()
+        Lock.objects.lock_object_for_user(self.blog_article, other_user)
+        url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
+        article = BlogArticle.objects.get(pk=self.blog_article.pk)
+        self.assertRaises(LockingValidationError, self.client.post, url,
+            {'title': 'updated title', 'content': 'updated content'})
+        self.assertEqual(article.title, 'title')
+        self.assertEqual(article.content, 'content')
 
     def test_delete_unlocked(self):
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
@@ -52,6 +76,7 @@ class TestAdmin(test.TestCase):
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
         self.assertRaises(LockingValidationError, self.client.post, url, {'post': 'yes'})
         self.assertEqual(BlogArticle.objects.count(), 1)
+
 
 class TestLiveAdmin(test.LiveServerTestCase):
 

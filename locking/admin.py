@@ -46,23 +46,11 @@ class LockingAdminMixin(object):
             css={'all': ('locking/css/changelist.css', )}
         )
 
-    def get_form(self, request, obj=None, **kwargs):
-        """Patches the clean method of the admin form to confirm lock status
-
-        The forms clean method will now raise a validation error if the form
-        is locked by someone else.
-        """
-        form = super(LockingAdminMixin, self).get_form(request, obj, **kwargs)
-        old_clean = form.clean
-
-        def clean(self):
-            self.cleaned_data = old_clean(self)
-            if self.instance.id and Lock.is_locked(obj):
-                lock = Lock.objects.for_object(obj)[0]
-                raise LockingValidationError(lock, 'save')
-                return self.cleaned_data
-        form.clean = clean
-        return form
+    def save_model(self, request, obj, *args, **kwargs):
+        if Lock.is_locked(obj, for_user=request.user):
+            lock = Lock.objects.for_object(obj)[0]
+            raise LockingValidationError(lock, 'delete')
+        super(LockingAdminMixin, self).save_model(request, obj, *args, **kwargs)
 
     def delete_model(self, request, obj, **kwargs):
         if Lock.is_locked(obj, for_user=request.user):
