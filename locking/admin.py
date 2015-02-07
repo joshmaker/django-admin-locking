@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
 from .models import Lock
-from .settings import PING_SECONDS
+from .settings import PING_SECONDS, SHARE_ADMIN_JQUERY
 
 
 class LockingValidationError(forms.ValidationError):
@@ -42,10 +42,13 @@ class LockingAdminMixin(object):
 
     @property
     def media(self):
-        return super(LockingAdminMixin, self).media + forms.Media(
+        media = super(LockingAdminMixin, self).media + forms.Media(
             js=('locking/js/locking.js', self.locking_admin_changelist_js_url()),
             css={'all': ('locking/css/changelist.css', )}
         )
+        if not SHARE_ADMIN_JQUERY:
+            media = forms.Media(js=('locking/js/locking.jquery-1.11.2.min.js', )) + media
+        return media
 
     def get_form(self, request, obj=None, **kwargs):
         """Patches the clean method of the admin form to confirm lock status

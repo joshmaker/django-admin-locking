@@ -2,6 +2,7 @@
 
 import os
 import sys
+from django import VERSION
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
