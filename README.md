@@ -39,9 +39,9 @@ admin.site.register(MyModel, MyModelAdmin)
 
 Locking Admin offers the following variables for customization in your `settings.py`:
 
-* `LOCKING_EXPIRATION_SECONDS` - Time in seconds that an object will stay locked for without a 'ping' from the server. Defaults to 180.
-* `LOCKING_PING_SECONDS` - Time in seconds between 'pings' to the server with a request to maintain or gain a lock on the current form. Defaults to 15.
-* `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to True for Django 1.6 and later, and False for older versions of Django.
+* `LOCKING_EXPIRATION_SECONDS` - Time in seconds that an object will stay locked for without a 'ping' from the server. Defaults to `180`.
+* `LOCKING_PING_SECONDS` - Time in seconds between 'pings' to the server with a request to maintain or gain a lock on the current form. Defaults to `15`.
+* `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to `True` for Django 1.6 and later, and `False` for older versions of Django.
 
 
 ## Testing
@@ -51,6 +51,21 @@ Running the included test suite requires the following additional requirements:
 * Selenium
 * PhantomJS
 
+
+## JavaScript plugins for advanced widgets
+
+By default, form field widgets are disabled by adding the attribute `disabled = disabled` to all `inputs`. If you are using a custom widget, such as a WYSIWYG editor, you may need to register a locking plugin to ensure it is correctly locked and unlocked.
+
+Plugin registration takes the following form:
+
+```javascript
+window.locking.LockingFormPlugins.register({
+    'enable': function() {  /* Enabled my custom widget */ },
+    'disable': function() {  /* Disable my custom widget */ }
+})
+```
+
+For an example, look at the [included plugin](../django-admin-locking/blob/master/locking/static/locking/js/locking.ckeditor.js) for the CKEditor WYSIYG editor.
 
 [build-status-image]: https://api.travis-ci.org/joshmaker/django-admin-locking.svg?branch=master
 [travis]: https://travis-ci.org/joshmaker/django-admin-locking/?branch=master
