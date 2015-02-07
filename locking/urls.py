@@ -6,7 +6,8 @@ from .views import LockAPIView
 
 __all__ = ('urlpatterns', )
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/$',
         LockAPIView.as_view(), name='locking-api'),
     url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/$',

@@ -13,11 +13,13 @@ matrix:
       env: DJANGO_VERSION=1.4.19
 install:
   - pip install -e .
+  - pip install flake8
   - pip install django==$DJANGO_VERSION
   - pip install selenium
   - pip install coveralls
 before_script:
   - python manage.py collectstatic --link --noinput
+  - flake8 --max-line-length=100 --exclude=tests --ignore=F821 locking
 script:
   - coverage run manage.py test locking
 after_success:
