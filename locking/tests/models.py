@@ -4,6 +4,8 @@ from django.db import models
 
 from ..admin import LockingAdminMixin
 
+__all__ = ('BlogArticle', 'BlogArticleAdmin')
+
 
 class BlogArticle(models.Model):
     title = models.CharField(max_length=200)

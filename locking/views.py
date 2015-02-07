@@ -12,6 +12,8 @@ from django.utils.decorators import method_decorator
 
 from .models import Lock
 
+__all__ = ('LockAPIView', )
+
 
 class LockAPIView(View):
 

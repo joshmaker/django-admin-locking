@@ -10,6 +10,8 @@ except ImportError:
     get_user_model = lambda: User
 from django.contrib.auth.models import Permission
 
+__all__ = ('LockingClient', 'user_factory')
+
 
 def user_factory(model=None):
     username = 'user%d' % timezone.now().microsecond

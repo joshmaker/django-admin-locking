@@ -4,6 +4,7 @@ from django.conf.urls import patterns, url
 
 from .views import LockAPIView
 
+__all__ = ('urlpatterns', )
 
 urlpatterns = patterns('',
     url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/$',

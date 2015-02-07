@@ -6,7 +6,7 @@ from .models import BlogArticle
 from .utils import user_factory
 from ..models import Lock
 
-__all__ = ['TestLock', ]
+__all__ = ('TestLock', )
 
 
 class TestLock(test.TestCase):

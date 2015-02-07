@@ -11,7 +11,7 @@ from .utils import LockingClient, user_factory
 from ..models import Lock
 from ..settings import EXPIRATION_SECONDS
 
-__all__ = ['TestViews', ]
+__all__ = ('TestViews', )
 
 
 class TestViews(test.TestCase):

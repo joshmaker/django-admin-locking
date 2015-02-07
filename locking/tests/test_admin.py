@@ -10,7 +10,7 @@ from .models import BlogArticle
 from .utils import user_factory
 from ..models import Lock
 
-__all__ = ['TestAdmin', 'TestLiveAdmin']
+__all__ = ('TestAdmin', 'TestLiveAdmin')
 
 
 class TestAdmin(test.TestCase):
