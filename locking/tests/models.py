@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from django import forms
 from django.contrib import admin
 from django.db import models

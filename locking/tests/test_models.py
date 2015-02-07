@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from django import test
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
