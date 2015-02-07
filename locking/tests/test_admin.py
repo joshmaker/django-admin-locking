@@ -22,18 +22,22 @@ class TestAdmin(test.TestCase):
         self.user = user
 
     def test_changelist_loads(self):
+        """The change list view for a lockable object should load with status 200"""
         url = reverse('admin:locking_blogarticle_changelist')
         self.assertEqual(self.client.get(url).status_code, 200)
 
     def test_addform_loads(self):
+        """The add form view for a lockable object should load with status 200"""
         url = reverse('admin:locking_blogarticle_add')
         self.assertEqual(self.client.get(url).status_code, 200)
 
     def test_changeform_loads(self):
+        """The change form view for a lockable object should load with status 200"""
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.assertEqual(self.client.get(url).status_code, 200)
 
     def test_save_unlocked(self):
+        """Unlocked objects should update correctly when saved"""
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
         article = BlogArticle.objects.get(pk=self.blog_article.pk)
@@ -41,7 +45,8 @@ class TestAdmin(test.TestCase):
         self.assertEqual(article.content, 'updated content')
 
     def test_save_locked_by_user(self):
-        # Lock.objects.lock_object_for_user(self.blog_article, self.user)
+        """Locked objects should update correctly for the user who locks them"""
+        Lock.objects.lock_object_for_user(self.blog_article, self.user)
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
         self.client.post(url, {'title': 'updated title', 'content': 'updated content'})
         article = BlogArticle.objects.get(pk=self.blog_article.pk)
@@ -49,6 +54,7 @@ class TestAdmin(test.TestCase):
         self.assertEqual(article.content, 'updated content')
 
     def test_save_locked_by_other_user(self):
+        """Locked objects should *not* update when another user saves them"""
         other_user, _ = user_factory()
         Lock.objects.lock_object_for_user(self.blog_article, other_user)
         url = reverse('admin:locking_blogarticle_change', args=(self.blog_article.pk, ))
@@ -58,17 +64,20 @@ class TestAdmin(test.TestCase):
         self.assertEqual(article.content, 'content')
 
     def test_delete_unlocked(self):
+        """Unlocked objects should delete correctly"""
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
         self.client.post(url, {'post': 'yes'})
         self.assertEqual(BlogArticle.objects.count(), 0)
 
     def test_delete_locked_by_user(self):
+        """Locked objects should delete correctly for the user who locked them"""
         Lock.objects.lock_object_for_user(self.blog_article, self.user)
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
         self.client.post(url, {'post': 'yes'})
         self.assertEqual(BlogArticle.objects.count(), 0)
 
     def test_delete_locked_by_other_user(self):
+        """Locked objects should *not* be deleted by other users"""
         other_user, _ = user_factory()
         Lock.objects.lock_object_for_user(self.blog_article, other_user)
         url = reverse('admin:locking_blogarticle_delete', args=(self.blog_article.pk, ))
@@ -112,6 +121,7 @@ class TestLiveAdmin(test.LiveServerTestCase):
         return browser
 
     def test_addform(self):
+        """Add forms should not have disabled inputs or JavaScript errors"""
         user, password = user_factory(BlogArticle)
         browser = self.get_browser(user, password)
         browser.get(self.get_admin_url(add=True))
@@ -121,6 +131,7 @@ class TestLiveAdmin(test.LiveServerTestCase):
         self.assertFalse(browser.find_element_by_id('id_content').get_attribute('disabled'))
 
     def test_changeform(self):
+        """Change form should lock and unlock correctly"""
         user, password = user_factory(BlogArticle)
         user2, password2 = user_factory(BlogArticle)
 
@@ -160,7 +171,7 @@ class TestLiveAdmin(test.LiveServerTestCase):
         self.assertFalse(browser2.find_element_by_id('id_content').get_attribute('disabled'))
 
     def test_changelist(self):
-        """Browser loads the list view page, the correct article is listed as locked"""
+        """The correct article should be listed as locked on the changelist view"""
         user, password = user_factory(BlogArticle)
         Lock.objects.lock_object_for_user(self.blog_article, user)
         user2, password2 = user_factory(BlogArticle)
@@ -176,6 +187,7 @@ class TestLiveAdmin(test.LiveServerTestCase):
         self.assertFalse('locked' in elem_2.get_attribute('class'))
 
     def test_save_locked_form(self):
+        """Users should not be able to get around saving locked forms"""
         locking_user, _ = user_factory(BlogArticle)
         Lock.objects.lock_object_for_user(user=locking_user, obj=self.blog_article)
 

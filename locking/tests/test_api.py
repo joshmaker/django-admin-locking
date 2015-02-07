@@ -22,12 +22,14 @@ class TestViews(test.TestCase):
         self.article_content_type = ContentType.objects.get_for_model(BlogArticle)
 
     def test_dispatch_permissions(self):
+        """Locking API should require login and correct staff permissions"""
         client = LockingClient(self.blog_article)
         self.assertEqual(client.get().status_code, 302)
         client.login_new_user(has_perm=False)
         self.assertEqual(client.get().status_code, 401)
 
     def test_get(self):
+        """GET requests to API should return locks correctly"""
         client = LockingClient(self.blog_article)
         client.login_new_user()
         rsp = client.get()
@@ -52,6 +54,7 @@ class TestViews(test.TestCase):
                                delta=timezone.timedelta(seconds=30))
 
     def test_post(self):
+        """POST requests to API should create a lock only if it does already not exist"""
 
         # POST request should create lock, additional POSTs from that
         # same client should maintain the lock by increasing it's expiration
@@ -84,6 +87,7 @@ class TestViews(test.TestCase):
         self.assertEqual(locked_by_3, client_3.user.pk)
 
     def test_delete(self):
+        """DELETE request to API should remove lock"""
         client = LockingClient(self.blog_article)
         client.login_new_user()
         self.assertEqual(client.delete().status_code, 200)

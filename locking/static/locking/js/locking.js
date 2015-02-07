@@ -5,7 +5,7 @@
      * Global locking object
      *
      * Setup the global locking object and attach jQuery to it.
-     * Multiple versions of jquery may be installed, and we want
+     * Multiple versions of jQuery may be installed, and we want
      * to ensure that all locking code is using the same version.
      */
     window.locking = window.locking || {};
@@ -17,7 +17,7 @@
     /**
      * Locking API Wrapper
      *
-     * Makes asyncronous calls to lock or unlock an object
+     * Makes asynchronous calls to lock or unlock an object
      */
     locking.API = function(opts) {
         this.init(opts);
