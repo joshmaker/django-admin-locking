@@ -32,7 +32,7 @@
         };
 
         // Only run on changelist page
-        if (document.getElementById('changelist')) {
+        if ($('.locking-status').length > 0) {
             updateStatus();
             setInterval(updateStatus, options.ping * 1000);
         }

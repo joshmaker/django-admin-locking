@@ -13,9 +13,13 @@
             disableForm: function() {
                 if (!this.formDisabled) {
                     // Disable Delete link
-                    // $('.deletelink').css({'cursor': 'not-allowed', 'opacity': 0.5}).click(false);
+                    $('.deletelink').css({'cursor': 'not-allowed', 'opacity': 0.5}).click(false);
 
-                    this.$form.prepend('<ul class="messagelist"><li class="warning" id="locking-errornote">Form is locked</li></ul>');
+                    this.$form.prepend(
+                        '<ul class="messagelist grp-messagelist">' +
+                            '<li class="warning grp-warning" id="locking-errornote">Form is locked</li>' +
+                        '</ul>'
+                    );
                     this.api.ajax({
                         success: function (data) {
                             var locker = data[0]['locked_by'],

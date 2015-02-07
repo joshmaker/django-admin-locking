@@ -67,6 +67,10 @@ window.locking.LockingFormPlugins.register({
 
 For an example, look at the [included plugin](../django-admin-locking/blob/master/locking/static/locking/js/locking.ckeditor.js) for the CKEditor WYSIYG editor.
 
+## Compatibility Notes
+
+This app is compatible the popular admin theme [django-grappelli](https://django-grappelli.readthedocs.org/)
+
 [build-status-image]: https://api.travis-ci.org/joshmaker/django-admin-locking.svg?branch=master
 [travis]: https://travis-ci.org/joshmaker/django-admin-locking/?branch=master
 [coveralls-status-image]: https://coveralls.io/repos/joshmaker/django-admin-locking/badge.svg?branch=master

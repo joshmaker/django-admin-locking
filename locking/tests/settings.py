@@ -3,6 +3,15 @@ from __future__ import absolute_import, unicode_literals, division
 
 import os
 import sys
+import imp
+
+try:
+    imp.find_module('grappelli')
+except ImportError:
+    GRAPPELLI_INSTALLED = False
+else:
+    GRAPPELLI_INSTALLED = True
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -22,6 +31,9 @@ INSTALLED_APPS = (
 
     'locking',
 )
+
+if GRAPPELLI_INSTALLED:
+    INSTALLED_APPS = ('grappelli', ) + INSTALLED_APPS
 
 MEDIA_URL = '/media/'   # Avoids https://code.djangoproject.com/ticket/21451
 
