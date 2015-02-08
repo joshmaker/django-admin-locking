@@ -86,6 +86,24 @@ class TestViews(test.TestCase):
             'locked_by', flat=True)[0]
         self.assertEqual(locked_by_3, client_3.user.pk)
 
+    def test_put_new_lock(self):
+        """PUT requests should always update lock, even if someone else owned it"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        self.assertEqual(client.put().status_code, 200)
+        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.id).count(), 1)
+
+    def test_put_existing_lock(self):
+        """PUT requests should always update lock, even if someone else owned it"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        user, _ = user_factory(self.blog_article)
+        lock = Lock.objects.create(locked_by=user,
+                                   content_type=self.article_content_type,
+                                   object_id=self.blog_article.pk)
+        self.assertEqual(client.put().status_code, 200)
+        self.assertEqual(Lock.objects.get(id=lock.pk).locked_by.pk, client.user.pk)
+
     def test_delete(self):
         """DELETE request to API should remove lock"""
         client = LockingClient(self.blog_article)

@@ -17,7 +17,7 @@ __all__ = ('LockAPIView', )
 
 class LockAPIView(View):
 
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ['get', 'post', 'delete', 'put']
 
     @method_decorator(csrf_exempt)
     @method_decorator(login_required)
@@ -55,7 +55,7 @@ class LockAPIView(View):
                             content_type="application/json")
 
     def post(self, request, app, model, object_id):
-        """Create or maintain a lock on an object"""
+        """Create or maintain a lock on an object if possible"""
         try:
             Lock.objects.lock_for_user(content_type=self.lock_ct_type,
                                        object_id=object_id,
@@ -63,6 +63,11 @@ class LockAPIView(View):
         # Another user already has a lock
         except Lock.ObjectLockedError:
             return HttpResponse(status=401)
+        return HttpResponse(status=200)
+
+    def put(self, request, app, model, object_id):
+        """Create lock on an object, even if it was already locked"""
+        Lock.objects.force_lock_for_user(self.lock_ct_type, object_id, request.user)
         return HttpResponse(status=200)
 
     def delete(self, request, app, model, object_id):

@@ -1,12 +1,30 @@
+/* Change List */
 .locking-status.locked {
     display: block;
     width: 16px;
     height: 16px;
     background: transparent url('../img/lock.png') no-repeat 0 0;
+    cursor: pointer;
 }
 .locking-status.locked:hover {
     background-image: url('../img/unlock.png');
 }
 .locking-status.unlocked {
     display: none;
+}
+
+/* Change Form */
+#locking-warning {
+    padding: 10px 10px 10px 25px;
+    background-image: url('../img/lock.png');
+    background-position: 5px center;
+    position: relative;
+    margin-bottom: 15px;
+}
+
+#locking-take-lock {
+    position: absolute;
+    right: 10px;
+    top: 7px;
+    cursor: pointer;
 }

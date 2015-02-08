@@ -52,6 +52,16 @@ class LockingAdminMixin(object):
             media = forms.Media(js=('locking/js/locking.jquery-1.11.2.min.js', )) + media
         return media
 
+    def get_list_display_links(self, *args, **kwargs):
+        links = super(LockingAdminMixin, self).get_list_display_links(*args, **kwargs)
+        if not links:
+            return ('is_locked', )
+        elif isinstance(links, list):
+            links.append('is_locked')
+        elif isinstance(links, tuple):
+            links = links + ('is_locked', )
+        return links
+
     def get_form(self, request, obj=None, **kwargs):
         """Patches the clean method of the admin form to confirm lock status
         The forms clean method will now raise a validation error if the form
@@ -73,7 +83,7 @@ class LockingAdminMixin(object):
 
     def is_locked(self, obj):
         """List Display column to show lock status"""
-        html = '<a id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status"></a>'
+        html = '<span id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status"></span>'
         return html.format(obj_id=obj.pk)
 
     is_locked.allow_tags = True

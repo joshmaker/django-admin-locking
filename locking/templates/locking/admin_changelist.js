@@ -36,5 +36,9 @@
             updateStatus();
             setInterval(updateStatus, options.ping * 1000);
         }
+        var cookieName = options.appLabel + options.modelName + 'unlock';
+        $('.locking-status').click(function () {
+            locking.cookies.set(cookieName, '1', 60 * 1000);
+        });
     });
 })(window.locking);

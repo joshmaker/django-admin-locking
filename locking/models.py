@@ -58,10 +58,23 @@ class LockingManager(QueryMixin, models.Manager):
         lock.save()
         return lock
 
+    def force_lock_for_user(self, content_type, object_id, user):
+        """Like `lock_for_user` but always succeeds (even if locked by another user)"""
+        lock, created = self.get_or_create(content_type=content_type,
+            object_id=object_id, defaults={'locked_by': user})
+        if not created and lock.locked_by.pk != user.pk:
+            self.filter(pk=lock.pk).update(locked_by=user)
+        return lock
+
     def lock_object_for_user(self, obj, user):
         """Calls `lock_for_user` on a given object and user."""
         ct_type = ContentType.objects.get_for_model(obj)
         return self.lock_for_user(content_type=ct_type, object_id=obj.pk, user=user)
+
+    def force_lock_object_for_user(self, obj, user):
+        """Like `lock_object_for_user` but always succeeds (even if locked by another user)"""
+        ct_type = ContentType.objects.get_for_model(obj)
+        return self.force_lock_for_user(content_type=ct_type, object_id=obj.pk, user=user)
 
     def for_object(self, obj):
         ct_type = ContentType.objects.get_for_model(obj)

@@ -67,6 +67,9 @@
         unlock: function(opts) {
             this.ajax($.extend({'type': 'DELETE'}, opts));
         },
+        takeLock: function(opts) {
+            this.ajax($.extend({'type': 'PUT'}, opts));
+        },
         _onAjaxStart: function() {
             locking.ajax.num_pending++;
         },
@@ -152,11 +155,14 @@
                 statusCode: {
                     200: function() {
                         self.hasLock = true;
-                        self.enabledForm();
+                        self.enableForm();
                     },
                     401: function() {
-                        self.hasLock = false;
                         self.disableForm();
+                        if (self.hasLock) {
+                            alert('Another user has take your lock on this form');
+                        }
+                        self.hasLock = false;
                     }
                 }
             });
@@ -199,9 +205,8 @@
         /**
          * Enable all fields locked by `disableForm`
          */
-        enabledForm: function() {
+        enableForm: function() {
             if (this.formDisabled) {
-
                 // Allow form submission
                 this.$form.off('submit', this.preventFormSubmission);
 
@@ -217,7 +222,37 @@
                 $(document).trigger('locking:form-enabled');
                 this.formDisabled = false;
             }
+        },
+
+        takeLock: function() {
+            if (confirm('Are you sure you want to remove this lock?')) {
+                var self = this;
+                this.api.takeLock({
+                    success: function() {
+                        self.enableForm();
+                    }
+                });
+            }
         }
     });
+
+    locking.cookies = {
+        set: function(name, value, expires) {
+            var d = new Date();
+            d.setTime(d.getTime() + expires);
+            var expires = "expires="+d.toGMTString();
+            document.cookie = name + "=" + value + "; " + expires + "; path=/";
+        },
+        get: function(name) {
+            var value = "; " + document.cookie;
+            var parts = value.split("; " + name + "=");
+            if (parts.length == 2) {
+                return parts.pop().split(";").shift();
+            }
+        },
+        del: function(name) {
+            this.set(name, '', 0);
+        }
+    };
 
 })(window, document);
