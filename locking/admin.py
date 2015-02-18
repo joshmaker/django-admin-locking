@@ -83,7 +83,8 @@ class LockingAdminMixin(object):
 
     def is_locked(self, obj):
         """List Display column to show lock status"""
-        html = '<span id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status"></span>'
+        html = ('<span id="locking-{obj_id}" data-object-id="{obj_id}" class="locking-status">'
+                '</span>')
         return html.format(obj_id=obj.pk)
 
     is_locked.allow_tags = True

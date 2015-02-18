@@ -61,7 +61,8 @@ class LockingManager(QueryMixin, models.Manager):
     def force_lock_for_user(self, content_type, object_id, user):
         """Like `lock_for_user` but always succeeds (even if locked by another user)"""
         lock, created = self.get_or_create(content_type=content_type,
-            object_id=object_id, defaults={'locked_by': user})
+                                           object_id=object_id,
+                                           defaults={'locked_by': user})
         if not created and lock.locked_by.pk != user.pk:
             self.filter(pk=lock.pk).update(locked_by=user)
         return lock
