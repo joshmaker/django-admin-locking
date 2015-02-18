@@ -11,10 +11,10 @@ from .utils import LockingClient, user_factory
 from ..models import Lock
 from ..settings import EXPIRATION_SECONDS
 
-__all__ = ('TestViews', )
+__all__ = ('TestAPI', )
 
 
-class TestViews(test.TestCase):
+class TestAPI(test.TestCase):
 
     def setUp(self):
         self.blog_article = BlogArticle.objects.create(title="title", content="content")

@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals, division
 
 from django.conf.urls import patterns, url
 
-from .views import LockAPIView
+from .api import LockAPIView
 
 __all__ = ('urlpatterns', )
 
