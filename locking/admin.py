@@ -36,10 +36,9 @@ class LockingAdminMixin(object):
             self.list_display.append('is_locked', )
         else:
             self.list_display = self.list_display + ('is_locked', )
-
-            opts = self.model._meta
-            # opts.model_name introduced in Django 1.6
-            model_name = getattr(opts, 'model_name', None) or opts.module_name.lower()
+        opts = self.model._meta
+        # opts.model_name introduced in Django 1.6
+        model_name = getattr(opts, 'model_name', None) or opts.module_name.lower()
         self._model_info = (opts.app_label, model_name)
 
     @property
