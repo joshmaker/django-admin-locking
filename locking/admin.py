@@ -32,10 +32,12 @@ class LockingAdminMixin(object):
     def __init__(self, *args, **kwargs):
         """Appends the "is_locked" column to this admin's list_display"""
         super(LockingAdminMixin, self).__init__(*args, **kwargs)
-        if hasattr(self.list_display, 'append'):
-            self.list_display.append('is_locked', )
-        else:
-            self.list_display = self.list_display + ('is_locked', )
+        if 'is_locked' not in self.list_display:
+            if hasattr(self.list_display, 'append'):
+                self.list_display.append('is_locked', )
+            else:
+                self.list_display = self.list_display + ('is_locked', )
+
         opts = self.model._meta
         # opts.model_name introduced in Django 1.6
         model_name = getattr(opts, 'model_name', None) or opts.module_name.lower()
