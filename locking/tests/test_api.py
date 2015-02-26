@@ -72,7 +72,7 @@ class TestAPI(test.TestCase):
         # POST from 2nd client to same endpoint should not overwrite existing lock
         client_2 = LockingClient(self.blog_article)
         client_2.login_new_user()
-        self.assertEqual(client_2.post().status_code, 401)
+        self.assertEqual(client_2.post().status_code, 409)
         self.assertEqual(Lock.objects.count(), 1)
         locked_by = Lock.objects.values_list('locked_by', flat=True)[0]
         self.assertEqual(locked_by, client.user.pk)

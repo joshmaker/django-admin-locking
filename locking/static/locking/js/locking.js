@@ -152,18 +152,16 @@
         getLock: function() {
             var self = this;
             this.api.lock({
-                statusCode: {
-                    200: function() {
-                        self.hasLock = true;
-                        self.enableForm();
-                    },
-                    401: function() {
-                        self.disableForm();
-                        if (self.hasLock) {
-                            alert('Another user has take your lock on this form');
-                        }
-                        self.hasLock = false;
+                success: function() {
+                    self.hasLock = true;
+                    self.enableForm();
+                },
+                error: function() {
+                    self.disableForm();
+                    if (self.hasLock) {
+                        alert('Another user has taken your lock on this form');
                     }
+                    self.hasLock = false;
                 }
             });
         },

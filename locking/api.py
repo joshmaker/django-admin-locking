@@ -62,7 +62,7 @@ class LockAPIView(View):
                                        user=request.user)
         # Another user already has a lock
         except Lock.ObjectLockedError:
-            return HttpResponse(status=401)
+            return HttpResponse(status=409)
         return HttpResponse(status=200)
 
     def put(self, request, app, model, object_id):
