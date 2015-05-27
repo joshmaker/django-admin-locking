@@ -87,126 +87,193 @@ class TestAdmin(test.TestCase):
 
 class TestLiveAdmin(test.LiveServerTestCase):
 
+    def _load(self, url_name, *args, **kwargs):
+        url = self.live_server_url + reverse(url_name, args=args, kwargs=kwargs)
+        self.browser.get(url)
+        self._wait_until_page_loaded()
+
+    def _wait_until(self, callback, msg=None):
+        WebDriverWait(self.browser, 10).until(callback, msg)
+
+    def _wait_until_page_loaded(self):
+        self._wait_until(lambda b: b.find_element_by_tag_name('body'))
+
+    def _wait_for_ajax(self):
+        self._wait_until(
+            lambda b: b.execute_script("return !!window.locking"),
+            "Timeout waiting for window.locking")
+        self._wait_until(
+            lambda b: b.execute_script("return !locking.ajax.has_pending()"),
+            "Timeout waiting for AJAX request")
+
+    def assert_no_js_errors(self):
+        errors = self.browser.execute_script("return window.locking_test.errors")
+        self.assertEqual(len(errors), 0, 'JavaScript Errors: "%s"' % '. '.join(errors))
+
     def setUp(self):
-        self.browsers = []
+        # Create test models
         self.blog_article = BlogArticle.objects.create(title="title", content="content")
         self.blog_article_2 = BlogArticle.objects.create(title="title 2", content="content 2")
 
-    def get_admin_url(self, **kwargs):
-        if 'instance' in kwargs:
-            return self.live_server_url + reverse('admin:locking_blogarticle_change', args=(kwargs['instance'].pk, ))
-        elif kwargs.get('add', False):
-            return self.live_server_url + reverse('admin:locking_blogarticle_add')
-        else:
-            return self.live_server_url + reverse('admin:locking_blogarticle_changelist')
+        # Instantiate and login Selenium browser
+        self.browser = webdriver.PhantomJS()
+        self.browser.set_window_size(1120, 550)
+        self._load('admin:locking_blogarticle_changelist')
 
-    def ajax_complete(self, browser):
-        return browser.execute_script("if (!window.locking) return true; return !locking.ajax.has_pending();")
+        self.user, password = user_factory(BlogArticle)
+        self.browser.find_element_by_id("id_username").send_keys(self.user.username)
+        self.browser.find_element_by_id("id_password").send_keys(password)
+        self.browser.find_element_by_xpath('//input[@value="Log in"]').click()
 
-    def wait_for_ajax(self, browser):
-        WebDriverWait(browser, 10).until(self.ajax_complete, "Timeout waiting for AJAX request")
-
-    def assert_no_js_errors(self, browser):
-        errors = browser.execute_script("return window.locking_test.errors")
-        self.assertEqual(len(errors), 0, 'JavaScript Errors: "%s"' % ' '.join(errors))
-
-    def get_browser(self, user, password):
-        browser = webdriver.PhantomJS()
-        browser.set_window_size(1120, 550)
-        browser.get(self.get_admin_url())
-        browser.find_element_by_id("id_username").send_keys(user.username)
-        browser.find_element_by_id("id_password").send_keys(password)
-        browser.find_element_by_xpath('//input[@value="Log in"]').click()
-        self.browsers.append(browser)
-        return browser
+    def tearDown(self):
+        self.browser.quit()
 
     def test_addform(self):
         """Add forms should not have disabled inputs or JavaScript errors"""
-        user, password = user_factory(BlogArticle)
-        browser = self.get_browser(user, password)
-        browser.get(self.get_admin_url(add=True))
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser)
-        self.assertFalse(browser.find_element_by_id('id_title').get_attribute('disabled'))
-        self.assertFalse(browser.find_element_by_id('id_content').get_attribute('disabled'))
+        self._load('admin:locking_blogarticle_add')
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
+        self.assertFalse(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
+        self.assertFalse(self.browser.find_element_by_id('id_content').get_attribute('disabled'))
 
-    def test_changeform(self):
-        """Change form should lock and unlock correctly"""
-        user, password = user_factory(BlogArticle)
-        user2, password2 = user_factory(BlogArticle)
+    def test_jquery_version(self):
+        """Locking requires jQuery > 1.7"""
+        version = self.browser.execute_script("return window.locking.jQuery().jquery")
+        version = tuple(int(x) for x in version.split('.'))
+        self.assertTrue(version >= (1, 7), "locking.jQuery version less than 1.7")
 
-        browser = self.get_browser(user, password)
-        browser2 = self.get_browser(user2, password2)
+    def test_changeform_locks_for_user(self):
+        """When visiting an unlocked page, a new lock should be created and the form should be editable"""
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
 
-        # Browser 1 and 2 both load a change form,
-        # Browser 1 loads it first, so it is locked for browser 2
-        browser.get(self.get_admin_url(instance=self.blog_article))
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk).count(), 1)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk, locked_by=user.pk).count(), 1)
-        browser2.get(self.get_admin_url(instance=self.blog_article))
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser2)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk).count(), 1)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk, locked_by=user.pk).count(), 1)
-        self.assertFalse('Form is locked' in browser.page_source)
-        self.assertTrue('Form is locked' in browser2.page_source)
-        self.assertFalse(browser.find_element_by_id('id_title').get_attribute('disabled'))
-        self.assertFalse(browser.find_element_by_id('id_content').get_attribute('disabled'))
-        self.assertTrue(browser2.find_element_by_id('id_title').get_attribute('disabled'))
-        self.assertTrue(browser2.find_element_by_id('id_content').get_attribute('disabled'))
+        # Form should be editable
+        self.assertFalse(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
+        self.assertFalse(self.browser.find_element_by_id('id_content').get_attribute('disabled'))
 
-        # Browser 1 leaves the change form, it is unlocked and
-        # browser 2 is now able to get a lock on it
-        browser.get(self.get_admin_url())
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk, locked_by=user.pk).count(), 0)
-        browser2.get(self.get_admin_url(instance=self.blog_article))
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser2)
-        self.assertEqual(Lock.objects.filter(object_id=self.blog_article.pk, locked_by=user2.pk).count(), 1)
-        self.assertFalse(browser2.find_element_by_id('id_title').get_attribute('disabled'))
-        self.assertFalse(browser2.find_element_by_id('id_content').get_attribute('disabled'))
+        # Check that lock was created
+        locks = Lock.objects.for_object(self.blog_article)
+        self.assertEqual(len(locks), 1)
+        self.assertEqual(locks[0].locked_by.pk, self.user.pk)
 
-    def test_changelist(self):
-        """The correct article should be listed as locked on the changelist view"""
-        user, password = user_factory(BlogArticle)
-        Lock.objects.lock_object_for_user(self.blog_article, user)
-        user2, password2 = user_factory(BlogArticle)
-        browser = self.get_browser(user2, password2)
+    def test_changeform_unlocks_for_user(self):
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
+        self._load('admin:locking_blogarticle_changelist')
 
-        browser.get(self.get_admin_url())
-        self.assert_no_js_errors(browser)
-        self.wait_for_ajax(browser)
+        # Check that lock was deleted
+        locks = Lock.objects.for_object(self.blog_article)
+        self.assertEqual(len(locks), 0)
 
-        elem_1 = browser.find_element_by_id('locking-%s' % self.blog_article.pk)
-        elem_2 = browser.find_element_by_id('locking-%s' % self.blog_article_2.pk)
-        self.assertTrue('locked' in elem_1.get_attribute('class'))
-        self.assertFalse('locked' in elem_2.get_attribute('class'))
+    def test_changeform_locked_by_other_user(self):
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
+
+        # Form should not be editable
+        self.assertTrue(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
+        self.assertTrue(self.browser.find_element_by_id('id_content').get_attribute('disabled'))
+
+        # Check that lock was not overwritten
+        locks = Lock.objects.for_object(self.blog_article)
+        self.assertEqual(len(locks), 1)
+        self.assertEqual(locks[0].locked_by.pk, other_user.pk)
+
+    def test_changeform_does_not_unlock_for_user(self):
+        """Leaving a page locked by another user should not unlock it"""
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
+        self._load('admin:locking_blogarticle_changelist')
+
+        # Check that lock was not deleted
+        locks = Lock.objects.for_object(self.blog_article)
+        self.assertEqual(len(locks), 1)
+        self.assertEqual(locks[0].locked_by.pk, other_user.pk)
+
+    def test_changeform_does_unlock_for_user(self):
+        """Clicking the 'remove lock' button should take over the lock"""
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+        self.assert_no_js_errors()
+        self.browser.find_element_by_id('locking-take-lock').click()
+        self._wait_for_ajax()
+        self._wait_until(
+            lambda b: b.execute_script("return (window.locking_test.confirmations > 0)"))
+        lock = Lock.objects.for_object(self.blog_article)[0]
+        self.assertEqual(lock.locked_by.pk, self.user.pk)
 
     def test_save_locked_form(self):
         """Users should not be able to get around saving locked forms"""
-        locking_user, _ = user_factory(BlogArticle)
-        Lock.objects.lock_object_for_user(user=locking_user, obj=self.blog_article)
-
+        other_user, _ = user_factory(BlogArticle)
+        Lock.objects.force_lock_object_for_user(user=other_user, obj=self.blog_article)
         old_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
 
-        editing_user, password = user_factory(BlogArticle)
-        browser = self.get_browser(editing_user, password)
-        browser.get(self.get_admin_url(instance=self.blog_article))
-        self.assert_no_js_errors(browser)
-        old_page_id = browser.find_element_by_tag_name('html').id
-        browser.execute_script("document.getElementsByName('csrfmiddlewaretoken')[0].removeAttribute('disabled')")
-        browser.execute_script("document.getElementById('id_title').value = 'Edited Title'")
-        browser.execute_script("document.getElementById('blogarticle_form').submit()")
-        WebDriverWait(browser, 10).until(lambda b: b.find_element_by_tag_name('html').id != old_page_id)
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        old_page_id = self.browser.find_element_by_tag_name('html').id
+        self.browser.execute_script("document.getElementsByName('csrfmiddlewaretoken')[0].removeAttribute('disabled')")
+        self.browser.execute_script("document.getElementById('id_title').value = 'Edited Title'")
+        self.browser.execute_script("document.getElementById('blogarticle_form').submit()")
 
-        self.assertTrue('locked by' in browser.page_source)
+        # Wait for the page to reload
+        self._wait_until(lambda b: b.find_element_by_tag_name('html').id != old_page_id)
+        self._wait_until_page_loaded()
+        self.assertTrue('locked by' in self.browser.page_source)
         new_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
+
+        # The title should not have changed
         self.assertEqual(old_title, new_title)
 
-    def tearDown(self):
-        for browser in self.browsers:
-            browser.quit()
+    def test_locked_form_loses_lock(self):
+        self._load('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_ajax()
+
+        other_user, _ = user_factory(BlogArticle)
+        Lock.objects.force_lock_object_for_user(user=other_user, obj=self.blog_article)
+
+        self._wait_until(
+            lambda b: b.execute_script("return (window.locking_test.alerts > 0)"),
+            "Lock lost alert never triggered")
+        self.assertTrue(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
+        self.assertTrue(self.browser.find_element_by_id('id_content').get_attribute('disabled'))
+
+    def test_changelist_shows_lock(self):
+        """The correct article should be listed as locked on the changelist view"""
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+
+        self._load('admin:locking_blogarticle_changelist')
+        self.assert_no_js_errors()
+        elem_1 = self.browser.find_element_by_id('locking-%s' % self.blog_article.pk)
+        elem_2 = self.browser.find_element_by_id('locking-%s' % self.blog_article_2.pk)
+        self.assertTrue('locked' in elem_1.get_attribute('class'))
+        self.assertFalse('locked' in elem_2.get_attribute('class'))
+
+    def test_unlock_from_changelist(self):
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+        self._load('admin:locking_blogarticle_changelist')
+        lock_icon = self.browser.find_element_by_id('locking-%s' % self.blog_article.pk)
+        old_page_id = self.browser.find_element_by_tag_name('html').id
+        lock_icon.click()
+        self._wait_until(
+            lambda b: b.find_element_by_tag_name('html').id != old_page_id,
+            "Wait for page to reload")
+        self._wait_until_page_loaded()
+        self._wait_until(
+            lambda b: b.execute_script("return (window.locking_test.confirmations > 0)"),
+            "Wait for confirmation modal window")
+        self._wait_for_ajax()
+
+        lock = Lock.objects.for_object(self.blog_article)[0]
+        self.assertEqual(lock.locked_by.pk, self.user.pk)

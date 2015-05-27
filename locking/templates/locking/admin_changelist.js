@@ -3,12 +3,14 @@
 
     var options = {{ options|safe }};
     var $ = locking.jQuery;
-    var api = new locking.API({
-            appLabel: options.appLabel,
-            modelName: options.modelName,
-        });
 
     $(document).ready(function () {
+        var api = new locking.API({
+                appLabel: options.appLabel,
+                modelName: options.modelName,
+            });
+        var cookieName = options.appLabel + options.modelName + 'unlock';
+
         function updateStatus () {
             api.ajax({success: function (data) {
                 var user, name, lockedClass, lockedMessage;
@@ -27,6 +29,9 @@
                         lockedClass = "locked";
                     }
                     $('#locking-' + data[i]['object_id']).addClass(lockedClass).attr('title', lockedMessage);
+                    $('#locking-' + data[i]['object_id']).click(function () {
+                        locking.cookies.set(cookieName, '1', 60 * 1000);
+                    });
                 }
             }});
         };
@@ -36,9 +41,5 @@
             updateStatus();
             setInterval(updateStatus, options.ping * 1000);
         }
-        var cookieName = options.appLabel + options.modelName + 'unlock';
-        $('.locking-status.locked').click(function () {
-            locking.cookies.set(cookieName, '1', 60 * 1000);
-        });
     });
 })(window.locking);

@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from .settings import EXPIRATION_SECONDS
+from .settings import DEFAULT_EXPIRATION_SECONDS
 
 
 __all__ = ('Lock', )
@@ -108,7 +108,8 @@ class Lock(models.Model):
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"
         self.id = "%s.%s" % (self.content_type_id, self.object_id)
-        self.date_expires = timezone.now() + timezone.timedelta(seconds=EXPIRATION_SECONDS)
+        seconds = getattr(settings, 'LOCKING_EXPIRATION_SECONDS', DEFAULT_EXPIRATION_SECONDS)
+        self.date_expires = timezone.now() + timezone.timedelta(seconds=seconds)
         super(Lock, self).save(*args, **kwargs)
 
     @property

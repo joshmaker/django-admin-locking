@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import BlogArticle
 from .utils import LockingClient, user_factory
 from ..models import Lock
-from ..settings import EXPIRATION_SECONDS
+from ..settings import DEFAULT_EXPIRATION_SECONDS
 
 __all__ = ('TestAPI', )
 
@@ -50,7 +50,7 @@ class TestAPI(test.TestCase):
         date_expires = timezone.datetime.strptime(result[0]['date_expires'], "%Y-%m-%dT%H:%M:%S.%fz")
         date_expires = timezone.make_aware(date_expires, timezone.get_default_timezone())
         self.assertAlmostEqual(date_expires,
-                               timezone.now() + timezone.timedelta(seconds=EXPIRATION_SECONDS),
+                               timezone.now() + timezone.timedelta(seconds=DEFAULT_EXPIRATION_SECONDS),
                                delta=timezone.timedelta(seconds=30))
 
     def test_post(self):

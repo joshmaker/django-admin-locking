@@ -4,12 +4,13 @@ import json
 import types
 
 from django import forms
+from django.conf import settings
 from django.conf.urls import patterns, url
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
 from .models import Lock
-from .settings import PING_SECONDS, SHARE_ADMIN_JQUERY
+from .settings import DEFAULT_PING_SECONDS, DEFAULT_SHARE_ADMIN_JQUERY
 
 __all__ = ('LockingValidationError', 'LockingAdminMixin')
 
@@ -49,7 +50,7 @@ class LockingAdminMixin(object):
             js=('locking/js/locking.js', self.locking_admin_changelist_js_url()),
             css={'all': ('locking/css/changelist.css', )}
         )
-        if not SHARE_ADMIN_JQUERY:
+        if not getattr(settings, 'LOCKING_SHARE_ADMIN_JQUERY', DEFAULT_SHARE_ADMIN_JQUERY):
             media = forms.Media(js=('locking/js/locking.jquery-1.11.2.min.js', )) + media
         return media
 
@@ -122,7 +123,7 @@ class LockingAdminMixin(object):
             'currentUser': request.user.username,
             'appLabel': app_label,
             'modelName': model_name,
-            'ping': PING_SECONDS,
+            'ping': getattr(settings, 'LOCKING_PING_SECONDS', DEFAULT_PING_SECONDS),
             'objectID': object_id,
         })
 
