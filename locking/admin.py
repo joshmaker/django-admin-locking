@@ -5,7 +5,7 @@ import types
 
 from django import forms
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
@@ -40,9 +40,7 @@ class LockingAdminMixin(object):
                 self.list_display = self.list_display + ('is_locked', )
 
         opts = self.model._meta
-        # opts.model_name introduced in Django 1.6
-        model_name = getattr(opts, 'model_name', None) or opts.module_name.lower()
-        self._model_info = (opts.app_label, model_name)
+        self._model_info = (opts.app_label, opts.model_name)
 
     @property
     def media(self):
@@ -103,8 +101,7 @@ class LockingAdminMixin(object):
     def get_urls(self):
         """Adds 'locking_admin_form_js' script to the available URLs"""
         urls = super(LockingAdminMixin, self).get_urls()
-        locking_urls = patterns(
-            '',
+        locking_urls = [
             # URL For Locking admin form JavaScript
             url(r'^locking_form.%s_%s_(?P<object_id>[0-9]+).js$' % self._model_info,
                 self.admin_site.admin_view(self.locking_admin_form_js),
@@ -114,7 +111,7 @@ class LockingAdminMixin(object):
             url(r'^locking_changelist.%s_%s.js$' % self._model_info,
                 self.admin_site.admin_view(self.locking_admin_changelist_js),
                 name=self.locking_admin_changelist_js_url_name),
-        )
+        ]
         return locking_urls + urls
 
     def get_json_options(self, request, object_id=None):

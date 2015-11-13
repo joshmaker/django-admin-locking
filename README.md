@@ -9,7 +9,7 @@ Prevents users from overwriting each others changes in Django.
 Django Admin Locking is tested in the following environments
 
 * Python (2.7, 3.4)
-* Django (1.4, 1.5, 1.6, 1.7)
+* Django (1.6, 1.7, 1.8)
 
 ## Installation
 
@@ -41,7 +41,7 @@ Locking Admin offers the following variables for customization in your `settings
 
 * `LOCKING_EXPIRATION_SECONDS` - Time in seconds that an object will stay locked for without a 'ping' from the server. Defaults to `180`.
 * `LOCKING_PING_SECONDS` - Time in seconds between 'pings' to the server with a request to maintain or gain a lock on the current form. Defaults to `15`.
-* `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to `True` for Django 1.6 and later, and `False` for older versions of Django.
+* `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to `True`.
 
 
 ## Testing
@@ -65,7 +65,7 @@ window.locking.LockingFormPlugins.register({
 })
 ```
 
-For an example, look at the [included plugin](../django-admin-locking/blob/master/locking/static/locking/js/locking.ckeditor.js) for the CKEditor WYSIYG editor.
+For an example, look at the [included plugin](locking/static/locking/js/locking.ckeditor.js) for the CKEditor WYSIYG editor.
 
 ## Compatibility Notes
 

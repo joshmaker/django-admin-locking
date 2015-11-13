@@ -3,6 +3,7 @@ include =
     locking/*
 omit =
     locking/tests/*
+    locking/migrations/*
 
 [report]
 # Regexes for lines to exclude from consideration

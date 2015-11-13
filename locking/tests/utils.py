@@ -4,12 +4,7 @@ from django import test
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-try:
-    from django.contrib.auth import get_user_model
-except ImportError:
-    # Django < 1.5
-    from django.contrib.auth.models import User
-    get_user_model = lambda: User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
 __all__ = ('LockingClient', 'user_factory')

@@ -1,26 +1,31 @@
 language: python
+
 python:
-  - "2.7"
-  - "3.4"
-env:
-  - DJANGO_VERSION=1.4.19
-  - DJANGO_VERSION=1.5.12
-  - DJANGO_VERSION=1.6.10
-  - DJANGO_VERSION=1.7.4
-matrix:
-  exclude:
-    - python: "3.4"
-      env: DJANGO_VERSION=1.4.19
+  - 2.7
+
+sudo: false
+
 install:
-  - pip install -e .
   - pip install flake8
-  - pip install django==$DJANGO_VERSION
-  - pip install selenium
-  - pip install coveralls
+  - pip install tox
+
 before_script:
-  - python manage.py collectstatic --link --noinput
-  - flake8 --max-line-length=100 --exclude=tests --ignore=F821 locking
+  - flake8 --max-line-length=100 --exclude=tests locking
+
 script:
-  - coverage run manage.py test locking
+  - tox
+
+env:
+  - TOXENV=py27-django17
+  - TOXENV=py27-django18
+  - TOXENV=py27-django19
+  - TOXENV=py34-django17
+  - TOXENV=py34-django18
+  - TOXENV=py34-django19
+  - TOXENV=py27-django17-grappelli
+  - TOXENV=py27-django18-grappelli
+  - TOXENV=py34-django17-grappelli
+  - TOXENV=py34-django18-grappelli
+
 after_success:
   coveralls

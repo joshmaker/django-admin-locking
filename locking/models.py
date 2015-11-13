@@ -1,8 +1,7 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from django import VERSION
 from django.conf import settings
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
@@ -16,14 +15,6 @@ __all__ = ('Lock', )
 class QueryMixin(object):
     def unexpired(self):
         return self.filter(date_expires__gte=timezone.now())
-
-    # Django < 1.6
-    if not hasattr(models.query.QuerySet, 'first'):
-        def first(self):
-            try:
-                return self.all()[0]
-            except IndexError:
-                return None
 
 
 class LockingQuerySet(QueryMixin, models.query.QuerySet):
@@ -84,9 +75,6 @@ class LockingManager(QueryMixin, models.Manager):
     def get_queryset(self):
         return LockingQuerySet(self.model)
 
-    if VERSION < (1, 6):
-        get_query_set = get_queryset
-
 
 class Lock(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
@@ -94,7 +82,7 @@ class Lock(models.Model):
     date_expires = models.DateTimeField()
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     objects = LockingManager()
 
