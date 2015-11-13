@@ -1,7 +1,8 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from django import test
+from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,7 +14,7 @@ from ..models import Lock
 __all__ = ('TestAdmin', 'TestLiveAdmin')
 
 
-class TestAdmin(test.TestCase):
+class TestAdmin(TestCase):
 
     def setUp(self):
         self.blog_article = BlogArticle.objects.create(title="title", content="content")
@@ -85,7 +86,7 @@ class TestAdmin(test.TestCase):
         self.assertEqual(BlogArticle.objects.count(), 1)
 
 
-class TestLiveAdmin(test.LiveServerTestCase):
+class TestLiveAdmin(StaticLiveServerTestCase):
 
     def _load(self, url_name, *args, **kwargs):
         url = self.live_server_url + reverse(url_name, args=args, kwargs=kwargs)
