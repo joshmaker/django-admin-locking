@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='adminlocking',
-    version='0.9',
+    version='1.0',
     url='https://github.com/joshmaker/django-admin-locking/',
     license='BSD',
     description='Prevents users from overwriting each others changes in Django.',
