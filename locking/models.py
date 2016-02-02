@@ -87,6 +87,7 @@ class Lock(models.Model):
     objects = LockingManager()
 
     class Meta:
+        db_table = getattr(settings, 'LOCKING_DB_TABLE', 'locking_lock')
         unique_together = ('content_type', 'object_id', )
         permissions = (("can_unlock", "Can remove other user's locks"), )
 

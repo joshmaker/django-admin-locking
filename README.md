@@ -48,6 +48,7 @@ Locking Admin offers the following variables for customization in your `settings
 * `LOCKING_EXPIRATION_SECONDS` - Time in seconds that an object will stay locked for without a 'ping' from the server. Defaults to `180`.
 * `LOCKING_PING_SECONDS` - Time in seconds between 'pings' to the server with a request to maintain or gain a lock on the current form. Defaults to `15`.
 * `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to `True`.
+* `LOCKING_DB_TABLE` - Used to override the default locking table name (`locking_lock`)
 
 
 ## Testing

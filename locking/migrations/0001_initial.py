@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 ('locked_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={
+                'db_table': getattr(settings, 'LOCKING_DB_TABLE', 'locking_lock'),
                 'permissions': (('can_unlock', "Can remove other user's locks"),),
             },
             bases=(models.Model,),
