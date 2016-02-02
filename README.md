@@ -22,6 +22,12 @@ INSTALLED_APPS = (
 )
 ```
 
+Add the required URL pattern:
+
+```python
+url(r'^locking/', include('locking.urls')),
+```
+
 ## Usage
 
 To enable locking for a `ModelAdmin`:
