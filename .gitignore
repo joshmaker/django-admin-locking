@@ -1,6 +1,7 @@
 *.pyc
 __pycache__
 
+.coverage
 .tox/
 assets/
 *.egg-info/
