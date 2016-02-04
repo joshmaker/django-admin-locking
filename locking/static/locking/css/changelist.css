@@ -1,20 +1,24 @@
 /* Change List */
-.locking-status.locked {
-    display: block;
-    width: 16px;
-    height: 16px;
-    background: transparent url('../img/lock.svg') no-repeat 0 0;
-    cursor: pointer;
-}
+.locking-status.locked,
 .locking-status.editing {
     display: block;
     width: 16px;
     height: 16px;
-    background: transparent url('../img/edit.svg') no-repeat 0 0;
-    cursor: default;
+    margin: 3px auto 0 auto;
+    background: transparent url('../img/icons.svg') no-repeat 0 0;
+    background-size: 100%;
+}
+.locking-status.locked {
+    cursor: pointer;
 }
 .locking-status.locked:hover {
-    background-image: url('../img/unlock.svg');
+    background-position-y: -16px;
+}
+.locking-status.editing {
+    background-position-y: -36px;
+    cursor: default;
+    position: relative;
+    left: 1px;
 }
 .locking-status.unlocked {
     display: none;
@@ -22,17 +26,20 @@
 
 /* Change Form */
 #locking-warning {
-    padding: 10px 10px 10px 25px;
-    background-image: url('../img/lock.svg');
-    background-position: 5px center;
+    padding: 10px;
+    background-position: 10px center;
     background-repeat: no-repeat;
+    background-size: 18px;
     position: relative;
     margin-bottom: 5px;
+}
+#grp-container #locking-warning {
+    float: none;
 }
 
 #locking-take-lock {
     position: absolute;
-    right: 10px;
+    right: 5px;
     cursor: pointer;
     top: 0;
     bottom: 0;
