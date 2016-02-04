@@ -9,6 +9,7 @@
      * to ensure that all locking code is using the same version.
      */
     window.locking = window.locking || {};
+    var locking = window.locking;
     if (locking.jQuery === undefined) {
         locking.jQuery = (window.django !== undefined && django.jQuery !== undefined) ? django.jQuery : jQuery;
     }
@@ -159,7 +160,7 @@
                 error: function() {
                     self.disableForm();
                     if (self.hasLock) {
-                        alert('Another user has taken your lock on this form');
+                        window.alert('Another user has taken your lock on this form');
                     }
                     self.hasLock = false;
                 }
@@ -223,7 +224,7 @@
         },
 
         takeLock: function() {
-            if (confirm('Are you sure you want to remove this lock?')) {
+            if (window.confirm('Are you sure you want to remove this lock?')) {
                 var self = this;
                 this.api.takeLock({
                     success: function() {

@@ -45,7 +45,9 @@ class LockingAdminMixin(object):
     @property
     def media(self):
         media = super(LockingAdminMixin, self).media + forms.Media(
-            js=('locking/js/locking.js', self.locking_admin_changelist_js_url()),
+            js=('locking/js/locking.js',
+                'locking/js/locking.admin.js',
+                self.locking_admin_changelist_js_url()),
             css={'all': ('locking/css/changelist.css', )}
         )
         if not getattr(settings, 'LOCKING_SHARE_ADMIN_JQUERY', DEFAULT_SHARE_ADMIN_JQUERY):
