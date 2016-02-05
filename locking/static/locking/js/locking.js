@@ -119,6 +119,7 @@
     $.extend(locking.LockingForm.prototype, {
         hasLock: false,
         formDisabled: false,
+        connectedToServer: true,
         init: function(form, opts) {
             var self = this;
             this.ping = opts.ping;
@@ -154,15 +155,26 @@
             var self = this;
             this.api.lock({
                 success: function() {
+                    self.connectedToServer = true;
                     self.hasLock = true;
                     self.enableForm();
                 },
-                error: function() {
-                    self.disableForm();
-                    if (self.hasLock) {
-                        window.alert('Another user has taken your lock on this form');
+                error: function(XMLHttpRequest) {
+                    if (XMLHttpRequest.status < 200 || XMLHttpRequest.status >= 500) {
+                        if (self.hasLock && self.connectedToServer) {
+                            window.alert('Warning! Due to loss of network connectivity ' +
+                                         'or a server error, you may not be able ' +
+                                         'to submit this form.');
+                            self.connectedToServer = false;
+                        }
+                    } else {
+                        self.connectedToServer = true;
+                        self.disableForm();
+                        if (self.hasLock) {
+                            window.alert('Another user has taken your lock on this form');
+                        }
+                        self.hasLock = false;
                     }
-                    self.hasLock = false;
                 }
             });
         },
