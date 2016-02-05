@@ -67,7 +67,7 @@
         warningHtml: '<ul class="messagelist grp-messagelist">' +
                         '<li class="error grp-error" id="locking-warning">' +
                             'Form is locked by <span class="locking-locked-by"></span>' +
-                            '<a id="locking-take-lock" class="rounded-button" onclick="window.lockingForm.takeLock()">Take over lock</a>' +
+                            '<a id="locking-take-lock" class="rounded-button" onclick="window.locking.lockingFormInstance.takeLock()">Take over lock</a>' +
                         '</li>' +
                      '</ul>',
         lockedBy: {
