@@ -101,6 +101,20 @@ class Lock(models.Model):
         self.date_expires = timezone.now() + timezone.timedelta(seconds=seconds)
         super(Lock, self).save(*args, **kwargs)
 
+    def to_dict(self):
+        return {
+            'locked_by': {
+                'username': self.locked_by.username,
+                'first_name': self.locked_by.first_name,
+                'last_name': self.locked_by.last_name,
+                'email': self.locked_by.email,
+            },
+            'date_expires': self.date_expires,
+            'app': self.content_type.app_label,
+            'model': self.content_type.model,
+            'object_id': self.object_id,
+        }
+
     @property
     def has_expired(self):
         return self.date_expires < timezone.now()

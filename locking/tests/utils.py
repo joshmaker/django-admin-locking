@@ -51,8 +51,8 @@ class LockingClient(object):
     def post(self, *args, **kwargs):
         return self.client.post(self.url, *args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        return self.client.delete(self.url, *args, **kwargs)
-
     def put(self, *args, **kwargs):
         return self.client.put(self.url, *args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return self.client.delete(self.url, *args, **kwargs)

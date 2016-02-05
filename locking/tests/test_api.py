@@ -21,12 +21,19 @@ class TestAPI(test.TestCase):
         self.blog_article_2 = BlogArticle.objects.create(title="title 2", content="content 2")
         self.article_content_type = ContentType.objects.get_for_model(BlogArticle)
 
-    def test_dispatch_permissions(self):
-        """Locking API should require login and correct staff permissions"""
+    def test_login_required(self):
+        """Locking API should require login for all methods"""
         client = LockingClient(self.blog_article)
-        self.assertEqual(client.get().status_code, 302)
+        for method in ['get', 'post', 'put', 'delete']:
+            # Redirect to login page
+            self.assertEqual(getattr(client, method)().status_code, 302)
+
+    def test_permission_required(self):
+        """Locking API should require correct permissions for all methods"""
+        client = LockingClient(self.blog_article)
         client.login_new_user(has_perm=False)
-        self.assertEqual(client.get().status_code, 401)
+        for method in ['get', 'post', 'put', 'delete']:
+            self.assertEqual(getattr(client, method)().status_code, 401)
 
     def test_get(self):
         """GET requests to API should return locks correctly"""
@@ -53,38 +60,43 @@ class TestAPI(test.TestCase):
                                timezone.now() + timezone.timedelta(seconds=DEFAULT_EXPIRATION_SECONDS),
                                delta=timezone.timedelta(seconds=30))
 
-    def test_post(self):
-        """POST requests to API should create a lock only if it does already not exist"""
-
-        # POST request should create lock, additional POSTs from that
-        # same client should maintain the lock by increasing it's expiration
+    def test_post_creates_lock(self):
+        """POST requests to API should create a lock if it does already not exist"""
         client = LockingClient(self.blog_article)
-        self.assertEqual(Lock.objects.all().count(), 0)
         client.login_new_user()
         self.assertEqual(client.post().status_code, 200)
         self.assertEqual(Lock.objects.count(), 1)
+        self.assertEqual(
+            Lock.objects.values_list('content_type', 'object_id', 'locked_by')[0],
+            (self.article_content_type.pk, self.blog_article.pk, client.user.pk))
+
+    def test_post_extends_lock(self):
+        """POST request to API should extend expiration date of existing lock by that user"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        Lock.objects.create(locked_by=client.user,
+                            content_type=self.article_content_type,
+                            object_id=self.blog_article.pk)
+
         date_expires_1 = Lock.objects.first().date_expires
         self.assertEqual(client.post().status_code, 200)
         self.assertEqual(Lock.objects.count(), 1)
         date_expires_2 = Lock.objects.first().date_expires
         self.assertGreater(date_expires_2, date_expires_1)
 
-        # POST from 2nd client to same endpoint should not overwrite existing lock
-        client_2 = LockingClient(self.blog_article)
-        client_2.login_new_user()
-        self.assertEqual(client_2.post().status_code, 409)
+    def test_post_from_non_owner_doesnt_overwrite_lock(self):
+        """POST from 2nd user to existing endpoint should not overwrite existing users lock"""
+        user, _ = user_factory(self.blog_article)
+        Lock.objects.create(locked_by=user,
+                            content_type=self.article_content_type,
+                            object_id=self.blog_article.pk)
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+
+        self.assertEqual(client.post().status_code, 409)
         self.assertEqual(Lock.objects.count(), 1)
         locked_by = Lock.objects.values_list('locked_by', flat=True)[0]
-        self.assertEqual(locked_by, client.user.pk)
-
-        # POST from 3rd client to new endpoint creates a new lock
-        client_3 = LockingClient(self.blog_article_2)
-        client_3.login_new_user()
-        self.assertEqual(client_3.post().status_code, 200)
-        self.assertEqual(Lock.objects.count(), 2)
-        locked_by_3 = Lock.objects.filter(object_id=self.blog_article_2.pk).values_list(
-            'locked_by', flat=True)[0]
-        self.assertEqual(locked_by_3, client_3.user.pk)
+        self.assertEqual(locked_by, user.pk)
 
     def test_put_new_lock(self):
         """PUT requests should always update lock, even if someone else owned it"""
@@ -105,12 +117,28 @@ class TestAPI(test.TestCase):
         self.assertEqual(Lock.objects.get(id=lock.pk).locked_by.pk, client.user.pk)
 
     def test_delete(self):
-        """DELETE request to API should remove lock"""
+        """DELETE request to API should remove locks made by that user"""
         client = LockingClient(self.blog_article)
         client.login_new_user()
-        self.assertEqual(client.delete().status_code, 200)
         Lock.objects.create(locked_by=client.user,
                             content_type=self.article_content_type,
                             object_id=self.blog_article.pk)
-        self.assertEqual(client.delete().status_code, 200)
+        self.assertEqual(client.delete().status_code, 204)
         self.assertEqual(Lock.objects.count(), 0)
+
+    def test_delete_nonexistent_lock(self):
+        """Calling delete on an already delete lock should not raise an exception"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        self.assertEqual(client.delete().status_code, 204)
+
+    def test_delete_for_other_user(self):
+        """DELETE request to API should not remove lock made by other users"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        other_user, _ = user_factory(self.blog_article)
+        Lock.objects.create(locked_by=other_user,
+                            content_type=self.article_content_type,
+                            object_id=self.blog_article.pk)
+        self.assertEqual(client.delete().status_code, 401)
+        self.assertEqual(Lock.objects.count(), 1)
