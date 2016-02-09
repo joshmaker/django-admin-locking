@@ -46,8 +46,8 @@
             }
         };
         return {
-            'enable': function() { return toggleCKEditorReadonly(false); },
-            'disable': function() { return toggleCKEditorReadonly(true); }
+            'enable': function(form) { return toggleCKEditorReadonly(form, false); },
+            'disable': function(form) { return toggleCKEditorReadonly(form, true); }
         };
     })();
 

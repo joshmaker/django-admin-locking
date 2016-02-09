@@ -103,6 +103,28 @@
                 }
                 this.plugins.push(plugin);
             }
+        },
+
+        /**
+         * Call any custom enable rules
+         * @param element    the form that has it's inputs enabled
+         */
+        enable: function(form) {
+            var numPlugins = this.plugins.length;
+            for (var i = 0; i < numPlugins; i++) {
+                this.plugins[i].enable(form);
+            }
+        },
+
+        /**
+         * Call any custom disable rules
+         * @param element    the form that has it's inputs 
+         */
+        disable: function(form) {
+            var numPlugins = this.plugins.length;
+            for (var i = 0; i < numPlugins; i++) {
+                this.plugins[i].disable(form);
+            }
         }
     };
 
@@ -199,10 +221,7 @@
                 var $disabledInputs = this.$form.find(":input").not($alreadyDisabled);
 
                 // Execute custom disabling rules
-                var numPlugins = locking.LockingFormPlugins.length;
-                for (var i = 0; i < numPlugins; i++) {
-                    $disabledInputs = $disabledInputs.not(locking.LockingFormPlugins[i].disable(this.$form));
-                }
+                locking.LockingFormPlugins.disable(this.$form[0]);
 
                 // Finish with standard disabling
                 $disabledInputs.attr('disabled', 'disabled');
@@ -225,10 +244,7 @@
                 this.$disabledInputs.removeAttr('disabled');
 
                 // Execute custom enabling rules
-                var numPlugins = locking.LockingFormPlugins.length;
-                for (var i = 0; i < numPlugins; i++) {
-                    locking.LockingFormPlugins[i].enable(this.$form);
-                }
+                locking.LockingFormPlugins.enable(this.$form[0]);
 
                 $(document).trigger('locking:form-enabled');
                 this.formDisabled = false;
