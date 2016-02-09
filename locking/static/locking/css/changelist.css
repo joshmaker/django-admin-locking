@@ -26,15 +26,16 @@
 
 /* Change Form */
 #locking-warning {
-    padding: 10px;
+    padding: 10px 35px;
     background-position: 10px center;
     background-repeat: no-repeat;
     background-size: 18px;
     position: relative;
     margin-bottom: 5px;
 }
-#grp-container #locking-warning {
+#grp-content #locking-warning {
     float: none;
+    padding: 10px;
 }
 
 #locking-take-lock {
@@ -45,8 +46,6 @@
     bottom: 0;
     margin: auto;
     line-height: 15px;
-    height: 15px;
-    padding: 5px;
     display: inline-block;
     vertical-align: middle;
 }
