@@ -113,6 +113,10 @@ class TestLiveAdmin(StaticLiveServerTestCase):
             lambda b: b.execute_script("return !locking.ajax.has_pending()"),
             "Timeout waiting for AJAX request")
 
+    def _wait_for_el(self, selector):
+        self._wait_until(
+            lambda b: b.execute_script("return document.querySelector('%s')" % selector))
+
     def assert_no_js_errors(self):
         errors = self.browser.execute_script("return window.locking_test.errors")
         self.assertEqual(len(errors), 0, 'JavaScript Errors: "%s"' % '. '.join(errors))
@@ -169,7 +173,11 @@ class TestLiveAdmin(StaticLiveServerTestCase):
 
         self._login('admin:locking_blogarticle_change', self.blog_article.pk)
         self._wait_for_ajax()
+        self._wait_for_el('#locking-warning')
         self.assert_no_js_errors()
+
+        # Should display who has locked the form
+        self.assertTrue(other_user.username in self.browser.find_element_by_id('locking-warning').text)
 
         # Form should not be editable
         self.assertTrue(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
@@ -202,6 +210,7 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self._login('admin:locking_blogarticle_change', self.blog_article.pk)
         self._wait_for_ajax()
         self.assert_no_js_errors()
+        # self._wait_for_el('#locking-take-lock')
         self.browser.find_element_by_id('locking-take-lock').click()
         self._wait_for_ajax()
         self._wait_until(

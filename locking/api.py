@@ -62,8 +62,8 @@ class LockAPIView(View):
                                               object_id=object_id,
                                               user=request.user)
         # Another user already has a lock
-        except Lock.ObjectLockedError:
-            return LockingJsonResponse(Lock.objects.for_object(), status=409)
+        except Lock.ObjectLockedError as e:
+            return LockingJsonResponse([e.lock], status=409)
         return LockingJsonResponse(lock)
 
     def put(self, request, app, model, object_id):

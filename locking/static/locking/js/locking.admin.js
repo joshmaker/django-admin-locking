@@ -79,7 +79,7 @@
                 this.email = data.email;
             }
         },
-        disableForm: function() {
+        disableForm: function(data) {
             if (!this.formDisabled) {
                 var self = this;
 
@@ -90,17 +90,13 @@
                 this.$form.before(this.warningHtml);
 
                 // Lookup who has the lock
-                this.api.ajax({
-                    success: function (data) {
-                        self.lockedBy.setUp(data[0]['locked_by']);
-                        $("#locking-warning .locking-locked-by").html(
-                            self.lockedBy.name +
-                            ' (<a href="mailto:' + self.lockedBy.email + '">' +
-                                self.lockedBy.email +
-                            '</a>)'
-                        );
-                    }
-                });
+                self.lockedBy.setUp(data[0]['locked_by']);
+                $("#locking-warning .locking-locked-by").html(
+                    self.lockedBy.name +
+                    ' (<a href="mailto:' + self.lockedBy.email + '">' +
+                        self.lockedBy.email +
+                    '</a>)'
+                );
             }
             locking.LockingForm.prototype.disableForm.call(this);
         },

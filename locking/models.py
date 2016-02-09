@@ -45,7 +45,8 @@ class LockingManager(QueryMixin, models.Manager):
             if lock.has_expired:
                 lock.locked_by = user
             elif lock.locked_by.id != user.id:
-                raise Lock.ObjectLockedError('This object is already locked by another user')
+                raise Lock.ObjectLockedError('This object is already locked by another user',
+                                             lock=lock)
         lock.save()
         return lock
 
@@ -93,7 +94,9 @@ class Lock(models.Model):
         permissions = (("can_unlock", "Can remove other user's locks"), )
 
     class ObjectLockedError(Exception):
-        pass
+        def __init__(self, message, lock):
+            self.lock = lock
+            super(Lock.ObjectLockedError, self).__init__(message)
 
     def save(self, *args, **kwargs):
         "Save lock and renew expiration date"

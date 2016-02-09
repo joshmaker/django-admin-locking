@@ -191,7 +191,7 @@
                         }
                     } else {
                         self.connectedToServer = true;
-                        self.disableForm();
+                        self.disableForm($.parseJSON(XMLHttpRequest.responseText));
                         if (self.hasLock) {
                             window.alert('Another user has taken your lock on this form');
                         }
