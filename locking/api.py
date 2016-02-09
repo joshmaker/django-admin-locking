@@ -30,7 +30,7 @@ class LockAPIView(View):
 
     @method_decorator(csrf_exempt)
     @method_decorator(login_required)
-    def dispatch(self, request, app, model, object_id=None, user_id=None):
+    def dispatch(self, request, app, model, object_id=None):
         model = model.lower()
         # if the usr can't change the object, they shouldn't be allowed to change the lock
         may_change = '%s.change_%s' % (app, model)
@@ -47,28 +47,24 @@ class LockAPIView(View):
 
         return super(LockAPIView, self).dispatch(request, app, model, object_id)
 
-    def get(self, request, app, model, object_id=None, user_id=None):
+    def get(self, request, app, model, object_id=None):
         locks = (Lock.objects.filter(content_type=self.lock_ct_type)
                              .unexpired()
                              .select_related('locked_by'))
         if object_id:
             locks = locks.filter(object_id=object_id)
-        if user_id:
-            locks = locks.filter(locked_by=user_id)
-        return LockingJsonResponse(locks, safe=False)
+        return LockingJsonResponse(locks)
 
-    def post(self, request, app, model, object_id, user_id=None):
+    def post(self, request, app, model, object_id):
         """Create or maintain a lock on an object if possible"""
-        if user_id is not None:
-            return HttpResponse(status=405)
         try:
             lock = Lock.objects.lock_for_user(content_type=self.lock_ct_type,
                                               object_id=object_id,
                                               user=request.user)
         # Another user already has a lock
         except Lock.ObjectLockedError:
-            return HttpResponse(status=409)
-        return LockingJsonResponse(lock, safe=False)
+            return LockingJsonResponse(Lock.objects.for_object(), status=409)
+        return LockingJsonResponse(lock)
 
     def put(self, request, app, model, object_id):
         """Create lock on an object, even if it was already locked"""
