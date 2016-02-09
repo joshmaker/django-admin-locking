@@ -75,3 +75,18 @@ class TestLock(test.TestCase):
         self.assertEqual(lock.locked_by_id, self.user.pk)
         self.assertEqual(lock.object_id, self.article1.pk)
         self.assertEqual(lock.content_type, self.article_ct)
+
+    def test_force_lock_object_for_user(self):
+        """force_lock_object_for_user should lock object even if it is locked by a different user"""
+        Lock.objects.create(locked_by=self.user, content_type=self.article_ct,
+            object_id=self.article1.pk)
+        new_user, _ = user_factory()
+        Lock.objects.force_lock_object_for_user(self.article1, new_user)
+        lock = Lock.objects.get(object_id=self.article1.pk)
+        self.assertEqual(lock.locked_by.pk, new_user.pk)
+
+    def test_force_lock_for_user_extends_expiration(self):
+        lock = Lock.objects.create(locked_by=self.user, content_type=self.article_ct,
+            object_id=self.article1.pk)
+        updated_lock = Lock.objects.force_lock_object_for_user(self.article1, self.user)
+        self.assertGreater(updated_lock.date_expires, lock.date_expires)

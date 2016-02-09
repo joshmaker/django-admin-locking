@@ -54,8 +54,9 @@ class LockingManager(QueryMixin, models.Manager):
         lock, created = self.get_or_create(content_type=content_type,
                                            object_id=object_id,
                                            defaults={'locked_by': user})
-        if not created and lock.locked_by.pk != user.pk:
-            self.filter(pk=lock.pk).update(locked_by=user)
+        if not created or lock.locked_by.pk != user.pk:
+            lock.locked_by = user
+            lock.save()
         return lock
 
     def lock_object_for_user(self, obj, user):
