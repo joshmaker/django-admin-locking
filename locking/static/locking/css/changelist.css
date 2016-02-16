@@ -46,6 +46,7 @@
     bottom: 0;
     margin: auto;
     line-height: 15px;
+    height: 15px;
     display: inline-block;
     vertical-align: middle;
 }
