@@ -43,6 +43,8 @@ class MyModelAdmin(LockingAdminMixin, admin.ModelAdmin):
 admin.site.register(MyModel, MyModelAdmin)
 ```
 
+The `LockingAdminMixin` will automatically add a new column that displays which rows are currently locked. To manually place this column add `is_locked` to the admin's `list_display` property.
+
 Locking Admin offers the following variables for customization in your `settings.py`:
 
 * `LOCKING_EXPIRATION_SECONDS` - Time in seconds that an object will stay locked for without a 'ping' from the server. Defaults to `180`.
@@ -67,8 +69,8 @@ Plugin registration takes the following form:
 
 ```javascript
 window.locking.LockingFormPlugins.register({
-    'enable': function() {  /* Enabled my custom widget */ },
-    'disable': function() {  /* Disable my custom widget */ }
+    'enable': function(form) {  /* Enabled my custom widget */ },
+    'disable': function(form) {  /* Disable my custom widget */ }
 })
 ```
 
