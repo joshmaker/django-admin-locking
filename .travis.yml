@@ -8,6 +8,7 @@ sudo: false
 install:
   - pip install flake8
   - pip install tox
+  - pip install coveralls
 
 before_script:
   - flake8 --max-line-length=100 --exclude=tests locking
@@ -26,3 +27,6 @@ env:
 
 script:
   - travis_retry tox
+
+after_success:
+  coveralls
