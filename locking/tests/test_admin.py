@@ -129,6 +129,7 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         # Instantiate and login Selenium browser
         self.browser = webdriver.PhantomJS()
         self.browser.set_window_size(1120, 550)
+        self.browser.set_page_load_timeout(10)
         self.user, self.password = user_factory(BlogArticle)
 
     def tearDown(self):
