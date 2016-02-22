@@ -70,7 +70,7 @@ class LockingAdminMixin(object):
         is locked by someone else.
         """
         form = super(LockingAdminMixin, self).get_form(request, obj, **kwargs)
-        if obj and Lock.is_locked(obj, for_user=request.user):
+        if request.method == 'POST' and obj and Lock.is_locked(obj, for_user=request.user):
             lock = Lock.objects.for_object(obj)[0]
 
             def clean(self, *args, **kwargs):
