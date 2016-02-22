@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='adminlocking',
+    name='Django Admin Locking',
     version='1.1',
     url='https://github.com/joshmaker/django-admin-locking/',
     license='BSD',
