@@ -20,6 +20,25 @@ class TestLock(test.TestCase):
         self.article_ct = ContentType.objects.get_for_model(BlogArticle)
         self.past = timezone.now() - timezone.timedelta(minutes=10)
 
+    def test_expire_updates_object(self):
+        """Calling `expire` on a lock should change the expiration on that object"""
+        lock = Lock.objects.create(locked_by=self.user,
+                                   content_type=self.article_ct,
+                                   object_id=self.article1.pk)
+        lock.expire(seconds=5)
+        expected_expiration = timezone.now() + timezone.timedelta(seconds=5)
+        self.assertAlmostEqual(lock.date_expires, expected_expiration, delta=timezone.timedelta(seconds=0.5))
+
+    def test_expire_updates_db(self):
+        """Calling `expire` on a lock should change the expiration in the database"""
+        lock = Lock.objects.create(locked_by=self.user,
+                                   content_type=self.article_ct,
+                                   object_id=self.article1.pk)
+        lock.expire(seconds=5)
+        lock_expiration = Lock.objects.filter(pk=lock.pk).values_list('date_expires', flat=True)[0]
+        expected_expiration = timezone.now() + timezone.timedelta(seconds=5)
+        self.assertAlmostEqual(lock_expiration, expected_expiration, delta=timezone.timedelta(seconds=0.5))
+
     def test_delete_expired(self):
         """`delete_expired` method should delete expired locks"""
         Lock.objects.create(locked_by=self.user, content_type=self.article_ct,

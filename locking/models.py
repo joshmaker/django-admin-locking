@@ -105,6 +105,11 @@ class Lock(models.Model):
         self.date_expires = timezone.now() + timezone.timedelta(seconds=seconds)
         super(Lock, self).save(*args, **kwargs)
 
+    def expire(self, seconds):
+        "Set lock to expire in `seconds` from now"
+        self.date_expires = timezone.now() + timezone.timedelta(seconds=seconds)
+        Lock.objects.filter(pk=self.pk).update(date_expires=self.date_expires)
+
     def to_dict(self):
         return {
             'locked_by': {
