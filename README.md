@@ -51,6 +51,18 @@ Locking Admin offers the following variables for customization in your `settings
 * `LOCKING_PING_SECONDS` - Time in seconds between 'pings' to the server with a request to maintain or gain a lock on the current form. Defaults to `15`.
 * `LOCKING_SHARE_ADMIN_JQUERY` - Should locking use instance of jQuery used by the admin or should it use it's own bundled version of jQuery? Useful because older versions of Django do not come with a new enough version of jQuery for admin locking. Defaults to `True`.
 * `LOCKING_DB_TABLE` - Used to override the default locking table name (`locking_lock`)
+* `LOCKING_DELETE_TIMEOUT_SECONDS` - If not zero, locks will not be deleted immediately when a user leaves an admin form, but will instead be set to expire in the specified number of seconds. Specifying this setting can help avoid the following situation: a user hits 'save and continue' on a form, causing the page to reload. If locks are deleted instantly, someone else might grab the lock before the form loads again. If this value is specified, it should be set to the approximate time it takes a form to save (generally a few seconds). Defaults to `0`.
+
+
+## Cleaning up expired locks
+
+Overtime, you may find it necessary to remove expired locks from the database. This can be done with the following management command
+
+```
+$ python manage.py delete_expired_locks
+```
+
+If you have a non-zero specified for `LOCKING_DELETE_TIMEOUT_SECONDS` in your settings, you should setup a reoccurring Cron or Celery task to automatically run this management command on a regular interval.
 
 
 ## Testing

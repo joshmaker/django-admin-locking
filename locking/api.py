@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals, division
 
 from collections import Iterable
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
@@ -11,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 from .models import Lock
+from .settings import DEFAULT_DELETE_TIMEOUT_SECONDS
 
 __all__ = ('LockAPIView', )
 
@@ -72,7 +74,13 @@ class LockAPIView(View):
         return LockingJsonResponse(lock, status=200)
 
     def delete(self, request, app, model, object_id):
-        """Remove a lock from an object"""
+        """
+        Remove a lock from an object
+
+        If a non-zero value for `LOCKING_DELETE_TIMEOUT_SECONDS` is specified in
+        settings, the lock is set to epxire in that many seconds rather than
+        deleted instantly
+        """
         try:
             lock = Lock.objects.get(content_type=self.lock_ct_type,
                                     object_id=object_id)
@@ -84,5 +92,9 @@ class LockAPIView(View):
         if lock.locked_by != request.user:
             return HttpResponse(status=401)
 
-        lock.delete()
+        seconds = getattr(settings, 'LOCKING_DELETE_TIMEOUT_SECONDS', DEFAULT_DELETE_TIMEOUT_SECONDS)
+        if seconds == 0:
+            lock.delete()
+        else:
+            lock.expire(seconds)
         return HttpResponse(status=204)

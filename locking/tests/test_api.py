@@ -142,3 +142,16 @@ class TestAPI(test.TestCase):
                             object_id=self.blog_article.pk)
         self.assertEqual(client.delete().status_code, 401)
         self.assertEqual(Lock.objects.count(), 1)
+
+    @test.override_settings(LOCKING_DELETE_TIMEOUT_SECONDS=5)
+    def test_delete_with_DELETE_TIMEOUT_SECONDS_settings(self):
+        """If `LOCKING_DELETE_TIMEOUT_SECONDS` is specified, locks are expired not deleted"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        lock = Lock.objects.create(locked_by=client.user,
+                                   content_type=self.article_content_type,
+                                   object_id=self.blog_article.pk)
+        self.assertEqual(client.delete().status_code, 204)
+        lock_expiration = Lock.objects.filter(pk=lock.pk).values_list('date_expires', flat=True)[0]
+        expected_expiration = timezone.now() + timezone.timedelta(seconds=5)     
+        self.assertAlmostEqual(lock_expiration, expected_expiration, delta=timezone.timedelta(seconds=0.5))
