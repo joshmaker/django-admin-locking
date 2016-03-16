@@ -6,6 +6,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.expected_conditions import staleness_of
 
 from .models import BlogArticle
 from .utils import user_factory
@@ -209,13 +210,31 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         other_user, _ = user_factory(model=BlogArticle)
         Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
         self._login('admin:locking_blogarticle_change', self.blog_article.pk)
-        self._wait_for_ajax()
+        self._wait_for_el('#locking-take-lock')
         self.assert_no_js_errors()
-        # self._wait_for_el('#locking-take-lock')
+
+        self.browser.execute_script('window.locking.lockingFormInstance.hasHadLock = true')
         self.browser.find_element_by_id('locking-take-lock').click()
-        self._wait_for_ajax()
         self._wait_until(
             lambda b: b.execute_script("return (window.locking_test.confirmations > 0)"))
+        lock = Lock.objects.for_object(self.blog_article)[0]
+        self.assertEqual(lock.locked_by.pk, self.user.pk)
+
+    def test_changeform_does_reload_and_unlock_for_user(self):
+        """Clicking the 'remove lock' button should take over the lock"""
+        other_user, _ = user_factory(model=BlogArticle)
+        Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
+        self._login('admin:locking_blogarticle_change', self.blog_article.pk)
+        self._wait_for_el('#locking-take-lock')
+        self.assert_no_js_errors()
+
+        body_el = self.browser.find_element_by_tag_name('body')
+        self.browser.find_element_by_id('locking-take-lock').click()
+
+        # ensure the page has reloaded
+        WebDriverWait(self.browser, 10).until(staleness_of(body_el))
+        self._wait_until_page_loaded()
+
         lock = Lock.objects.for_object(self.blog_article)[0]
         self.assertEqual(lock.locked_by.pk, self.user.pk)
 

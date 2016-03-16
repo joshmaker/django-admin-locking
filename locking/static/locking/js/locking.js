@@ -140,6 +140,7 @@
     };
     $.extend(locking.LockingForm.prototype, {
         hasLock: false,
+        hasHadLock: false,
         formDisabled: false,
         connectedToServer: true,
         init: function(form, opts) {
@@ -178,7 +179,6 @@
             this.api.lock({
                 success: function() {
                     self.connectedToServer = true;
-                    self.hasLock = true;
                     self.enableForm();
                 },
                 error: function(XMLHttpRequest) {
@@ -191,11 +191,10 @@
                         }
                     } else {
                         self.connectedToServer = true;
-                        self.disableForm($.parseJSON(XMLHttpRequest.responseText));
                         if (self.hasLock) {
                             window.alert('Another user has taken your lock on this form');
                         }
-                        self.hasLock = false;
+                        self.disableForm($.parseJSON(XMLHttpRequest.responseText));
                     }
                 }
             });
@@ -230,6 +229,7 @@
                 $(document).trigger('locking:form-disabled');
                 this.formDisabled = true;
             }
+            this.hasLock = false;
         },
 
         /**
@@ -237,18 +237,24 @@
          */
         enableForm: function() {
             if (this.formDisabled) {
-                // Allow form submission
-                this.$form.off('submit', this.preventFormSubmission);
+                if (this.hasHadLock) {
+                    // Allow form submission
+                    this.$form.off('submit', this.preventFormSubmission);
 
-                // Enable all standard fields
-                this.$disabledInputs.removeAttr('disabled');
+                    // Enable all standard fields
+                    this.$disabledInputs.removeAttr('disabled');
 
-                // Execute custom enabling rules
-                locking.LockingFormPlugins.enable(this.$form[0]);
+                    // Execute custom enabling rules
+                    locking.LockingFormPlugins.enable(this.$form[0]);
 
-                $(document).trigger('locking:form-enabled');
-                this.formDisabled = false;
+                    $(document).trigger('locking:form-enabled');
+                    this.formDisabled = false;
+                } else {
+                    location.reload();
+                }
             }
+            this.hasLock = true;
+            this.hasHadLock = true;
         },
 
         takeLock: function() {

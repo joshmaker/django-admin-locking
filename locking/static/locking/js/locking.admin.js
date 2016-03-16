@@ -58,6 +58,7 @@
 
         var cookieName = opts.appLabel + opts.modelName + 'unlock';
         if (locking.cookies.get(cookieName) === '1') {
+            this.hasHadLock = true;
             this.takeLock();
             locking.cookies.del(cookieName);
         }
