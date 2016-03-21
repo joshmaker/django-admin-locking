@@ -39,6 +39,7 @@
                     lockedClass = "locked";
                 }
                 $('#locking-' + data[i]['object_id'])
+                    .removeClass('locked editing')
                     .addClass(lockedClass)
                     .attr('title', lockedMessage)
                     .click(function () {
