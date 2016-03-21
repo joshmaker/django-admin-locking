@@ -92,7 +92,9 @@ class LockAPIView(View):
         if lock.locked_by != request.user:
             return HttpResponse(status=401)
 
-        seconds = getattr(settings, 'LOCKING_DELETE_TIMEOUT_SECONDS', DEFAULT_DELETE_TIMEOUT_SECONDS)
+        seconds = getattr(settings,
+                          'LOCKING_DELETE_TIMEOUT_SECONDS',
+                          DEFAULT_DELETE_TIMEOUT_SECONDS)
         if seconds == 0:
             lock.delete()
         else:
