@@ -1,6 +1,15 @@
 Changelog
 =========
 
+
+**1.2 (March 21, 2016)**
+
+* New: added `LOCKING_DELETE_TIMEOUT_SECONDS` setting
+* Improved: reload rather than unlock form never owned by user to prevent accidental editing of  stale data
+* Improved: removed unnecessary database call when loading form between saves
+* Fixed: incorrect icon displaying on changelist view
+
+
 **1.1 (February 16, 2016)**
 
 * New: warn user when unable to save lock due to loss of Internet connectivity
