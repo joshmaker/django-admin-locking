@@ -160,12 +160,13 @@
             setInterval(function() { self.getLock(); }, self.ping * 1000);
 
             // Unlock the form when leaving the page
-            $(window).on('beforeunload', function() {
-                if (self.hasLock) {
+            $(window).on('beforeunload submit', function() {
+                if (self.hasLock && self.removeLockOnUnload) {
                     // We have to assure that our unlock request gets
                     // through before the user leaves the page, so it
                     // shouldn't run asynchronously.
                     self.api.unlock({'async': false});
+                    self.hasLock = false;
                 }
             });
         },
