@@ -63,6 +63,12 @@
             this.takeLock();
             locking.cookies.del(cookieName);
         }
+
+        // Don't remove the lock when choosing 'save and continue editing'
+        var self = this;
+        $('input[type=submit][name="_continue"]').click(function() {
+            self.removeLockOnUnload = false;
+        });
     };
     $.extend(LockingAdminForm.prototype, locking.LockingForm.prototype);
     $.extend(LockingAdminForm.prototype, {

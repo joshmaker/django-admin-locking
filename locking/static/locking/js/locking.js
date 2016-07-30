@@ -143,6 +143,7 @@
         hasHadLock: false,
         formDisabled: false,
         connectedToServer: true,
+        removeLockOnUnload: true,
         init: function(form, opts) {
             var self = this;
             this.ping = opts.ping;
