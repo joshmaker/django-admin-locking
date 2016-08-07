@@ -142,7 +142,7 @@
         hasLock: false,
         hasHadLock: false,
         formDisabled: false,
-        connectedToServer: true,
+        numFailedConnections: 0,
         removeLockOnUnload: true,
         init: function(form, opts) {
             var self = this;
@@ -180,19 +180,17 @@
             var self = this;
             this.api.lock({
                 success: function() {
-                    self.connectedToServer = true;
                     self.enableForm();
                 },
                 error: function(XMLHttpRequest) {
                     if (XMLHttpRequest.status < 200 || XMLHttpRequest.status >= 500) {
-                        if (self.hasLock && self.connectedToServer) {
+                        if (self.hasLock && self.numFailedConnections == 1) {
                             window.alert('Warning! Due to loss of network connectivity ' +
                                          'or a server error, you may not be able ' +
                                          'to submit this form.');
-                            self.connectedToServer = false;
                         }
+                        self.numFailedConnections++;
                     } else {
-                        self.connectedToServer = true;
                         if (self.hasLock) {
                             window.alert('Another user has taken your lock on this form');
                         }
