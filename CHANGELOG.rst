@@ -1,6 +1,12 @@
 Changelog
 =========
 
+**1.3 (August 7, 2016)**
+
+* Improved: bind to form submit event for more robust unlocking
+* Improved: don't unlock admin for 'save and continue editing' form submissions
+* Improved: only display connectivity warning once, after second API failure
+
 
 **1.2 (March 21, 2016)**
 
