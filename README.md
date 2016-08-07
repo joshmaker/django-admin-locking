@@ -92,6 +92,10 @@ For an example, look at the [included plugin](locking/static/locking/js/locking.
 
 This app is compatible the popular admin theme [django-grappelli](https://django-grappelli.readthedocs.org/)
 
+## License
+
+This code is licensed under the Simplified BSD License. View the LICENSE file under the root directory for complete license and copyright information.
+
 [build-status-image]: https://api.travis-ci.org/joshmaker/django-admin-locking.svg?branch=master
 [travis]: https://travis-ci.org/joshmaker/django-admin-locking/?branch=master
 [coveralls-status-image]: https://coveralls.io/repos/joshmaker/django-admin-locking/badge.svg?branch=master
