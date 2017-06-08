@@ -117,14 +117,27 @@ class LockingAdminMixin(object):
         ]
         return locking_urls + urls
 
+    def get_api_url(self, object_id):
+        app_label, model_name = self._model_info
+
+        reverse_kwargs = {
+            'app': app_label,
+            'model': model_name,
+        }
+        if object_id is not None:
+            reverse_kwargs['object_id'] = object_id
+
+        return reverse('locking:locking-api', kwargs=reverse_kwargs)
+
     def get_json_options(self, request, object_id=None):
         app_label, model_name = self._model_info
+
         return json.dumps({
             'currentUser': request.user.username,
             'appLabel': app_label,
+            'apiURL': self.get_api_url(object_id),
             'modelName': model_name,
             'ping': getattr(settings, 'LOCKING_PING_SECONDS', DEFAULT_PING_SECONDS),
-            'objectID': object_id,
             'lockedByMeText': _('You are currently editing this'),
             'lockedByUserText': _('Locked by'),
             'takeLockText': _('Take over lock'),

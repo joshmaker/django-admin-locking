@@ -20,8 +20,8 @@
      *
      * Makes asynchronous calls to lock or unlock an object
      */
-    locking.API = function(opts) {
-        this.init(opts);
+    locking.API = function(apiURL) {
+        this.apiURL = apiURL;
     };
     locking.ajax = {
         num_pending: 0,
@@ -30,23 +30,9 @@
         }
     };
     $.extend(locking.API.prototype, {
-        defaults: {
-            hostURL: null,
-            apiBaseURL: '/locking/api/lock',
-            appLabel: null,
-            modelName: null,
-            objectID: null
-        },
-        init: function(opts) {
-            opts = $.extend(this.defaults, opts);
-            this.hostURL = $.grep(
-                [opts.hostURL, opts.apiBaseURL, opts.appLabel, opts.modelName, opts.objectID],
-                function(x) { return !!(x); }
-            ).join('/') + '/';
-        },
         ajax: function(opts) {
             var defaults = {
-                url: this.hostURL,
+                url: this.apiURL,
                 async: true,
                 cache: false
             };
@@ -148,11 +134,7 @@
             var self = this;
             this.ping = opts.ping;
             this.$form = $(form);
-            this.api = new locking.API({
-                appLabel: opts.appLabel,
-                modelName: opts.modelName,
-                objectID: opts.objectID
-            });
+            this.api = new locking.API(opts.apiURL);
 
             // Attempt to get a lock
             this.getLock();

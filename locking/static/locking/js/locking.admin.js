@@ -12,10 +12,7 @@
      */
     var ChangeListView = function (opts) {
         this.currentUser = opts.currentUser;
-        this.api = new locking.API({
-            appLabel: opts.appLabel,
-            modelName: opts.modelName,
-        });
+        this.api = new locking.API(opts.apiURL);
         this.lockedByMeText = opts.lockedByMeText;
         this.lockedByUserText = opts.lockedByUserText;
         this.cookieName = opts.appLabel + opts.modelName + 'unlock';

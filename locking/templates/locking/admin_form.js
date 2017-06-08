@@ -7,9 +7,9 @@
         var $form = $('#' + options.modelName + '_form');
 
         locking.lockingFormInstance = new locking.LockingAdminForm($form, {
+            apiURL: options.apiURL,
             appLabel: options.appLabel,
             modelName: options.modelName,
-            objectID: options.objectID,
             ping: options.ping,
             takeLockText: options.takeLockText,
             formIsLockedByText: options.formIsLockedByText

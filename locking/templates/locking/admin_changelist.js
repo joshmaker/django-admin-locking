@@ -10,6 +10,7 @@
             var options = {{ options|safe }}; // jshint ignore:line
 
             locking.changeListViewInstance = new locking.ChangeListView({
+                apiURL: options.apiURL,
                 appLabel: options.appLabel,
                 modelName: options.modelName,
                 ping: options.ping,

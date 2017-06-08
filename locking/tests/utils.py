@@ -30,7 +30,7 @@ class LockingClient(object):
 
     def __init__(self, instance):
         self.instance = instance
-        self.url = reverse('locking-api', kwargs={
+        self.url = reverse('locking:locking-api', kwargs={
             'app': instance._meta.app_label,
             'model': instance._meta.object_name,
             'object_id': instance.pk,
