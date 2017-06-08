@@ -1,6 +1,14 @@
 Changelog
 =========
 
+**1.3.1 (June 8, 2017)**
+
+* New: localization for messages in admin. Russian locale available
+* Improved: locking.urls could be included with any preferable pattern
+* Improved: move tests outside app
+* Improved: support for python3.5 and Django 1.11
+* Fixed: missing static and templates files in package
+
 **1.3 (August 7, 2016)**
 
 * Improved: bind to form submit event for more robust unlocking
@@ -11,7 +19,7 @@ Changelog
 **1.2 (March 21, 2016)**
 
 * New: added `LOCKING_DELETE_TIMEOUT_SECONDS` setting
-* Improved: reload rather than unlock form never owned by user to prevent accidental editing of  stale data
+* Improved: reload rather than unlock form never owned by user to prevent accidental editing of stale data
 * Improved: removed unnecessary database call when loading form between saves
 * Fixed: incorrect icon displaying on changelist view
 
