@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals, division
 
 import sys
 
+import django
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -18,6 +19,8 @@ if 'test' in sys.argv or 'runtests.py' in sys.argv:
             return True
 
         def __getitem__(self, item):
+            if django.VERSION < (1, 9):
+                return "nomigrations"
             return None
     settings.MIGRATION_MODULES = DisableMigrations()
 
