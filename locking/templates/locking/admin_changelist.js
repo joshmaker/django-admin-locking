@@ -13,7 +13,9 @@
                 appLabel: options.appLabel,
                 modelName: options.modelName,
                 ping: options.ping,
-                currentUser: options.currentUser
+                currentUser: options.currentUser,
+                lockedByMeText: options.lockedByMeText,
+                lockedByUserText: options.lockedByUserText
             });
         }
     });

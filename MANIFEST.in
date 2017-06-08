@@ -1,5 +1,6 @@
 include LICENSE
 include README.rst
 include CONTRIBUTING.md
+recursive-include locking/locale *
 recursive-include locking/static *
 recursive-include locking/templates *

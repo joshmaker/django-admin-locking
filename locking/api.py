@@ -23,7 +23,7 @@ class LockingJsonResponse(JsonResponse):
             data = [d.to_dict() for d in data]
         else:
             data = data.to_dict()
-        return super(LockingJsonResponse, self).__init__(data, encoder, safe, **kwargs)
+        super(LockingJsonResponse, self).__init__(data, encoder, safe, **kwargs)
 
 
 class LockAPIView(View):

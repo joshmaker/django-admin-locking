@@ -10,7 +10,9 @@
             appLabel: options.appLabel,
             modelName: options.modelName,
             objectID: options.objectID,
-            ping: options.ping
+            ping: options.ping,
+            takeLockText: options.takeLockText,
+            formIsLockedByText: options.formIsLockedByText
         });
     });
 })(window.locking);
