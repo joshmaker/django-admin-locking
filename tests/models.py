@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 
-from ..admin import LockingAdminMixin
+from locking.admin import LockingAdminMixin
 
 __all__ = ('BlogArticle', 'BlogArticleAdmin')
 

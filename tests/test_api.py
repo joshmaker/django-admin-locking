@@ -8,8 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from .models import BlogArticle
 from .utils import LockingClient, user_factory
-from ..models import Lock
-from ..settings import DEFAULT_EXPIRATION_SECONDS
+from locking.models import Lock
+from locking.settings import DEFAULT_EXPIRATION_SECONDS
 
 __all__ = ('TestAPI', )
 

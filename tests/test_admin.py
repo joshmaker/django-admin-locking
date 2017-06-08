@@ -10,7 +10,7 @@ from selenium.webdriver.support.expected_conditions import staleness_of
 
 from .models import BlogArticle
 from .utils import user_factory
-from ..models import Lock
+from locking.models import Lock
 
 __all__ = ('TestAdmin', 'TestLiveAdmin')
 

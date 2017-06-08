@@ -5,6 +5,8 @@ import os
 import sys
 import imp
 
+import django
+
 try:
     imp.find_module('grappelli')
 except ImportError:
@@ -46,15 +48,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'locking.tests.urls'
+ROOT_URLCONF = 'tests.urls'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, 'assets', 'static'))
 
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
+if django.VERSION < (1, 8):
+    TEMPLATE_LOADERS = (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    )
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -63,7 +67,6 @@ TEMPLATES = [
             'context_processors': (
                 'django.contrib.auth.context_processors.auth',
             ),
-            # 'loaders': TEMPLATE_LOADERS,
         }
     },
 ]

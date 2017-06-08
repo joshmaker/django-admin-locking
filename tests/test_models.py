@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from .models import BlogArticle
 from .utils import user_factory
-from ..models import Lock
+from locking.models import Lock
 
 __all__ = ('TestLock', )
 
