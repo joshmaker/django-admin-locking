@@ -18,7 +18,7 @@ if 'test' in sys.argv or 'runtests.py' in sys.argv:
             return True
 
         def __getitem__(self, item):
-            return "notmigrations"
+            return None
     settings.MIGRATION_MODULES = DisableMigrations()
 
 

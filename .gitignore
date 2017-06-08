@@ -1,7 +1,16 @@
 *.pyc
 __pycache__
 
+.idea
 .coverage
 .tox/
 assets/
 *.egg-info/
+ghostdriver.log
+/coverage/
+/build/
+/dist/
+/env/
+MANIFEST
+coverage.*
+report.*
