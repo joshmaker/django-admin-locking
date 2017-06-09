@@ -15,8 +15,7 @@
                 modelName: options.modelName,
                 ping: options.ping,
                 currentUser: options.currentUser,
-                lockedByMeText: options.lockedByMeText,
-                lockedByUserText: options.lockedByUserText
+                messages: options.messages
             });
         }
     });

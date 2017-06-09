@@ -91,7 +91,7 @@ class LockingAdminMixin(object):
         return html.format(obj_id=obj.pk)
 
     is_locked.allow_tags = True
-    is_locked.short_description = 'Lock'
+    is_locked.short_description = _('Lock')
 
     @property
     def locking_admin_form_js_url_name(self):
@@ -138,10 +138,17 @@ class LockingAdminMixin(object):
             'apiURL': self.get_api_url(object_id),
             'modelName': model_name,
             'ping': getattr(settings, 'LOCKING_PING_SECONDS', DEFAULT_PING_SECONDS),
-            'lockedByMeText': _('You are currently editing this'),
-            'lockedByUserText': _('Locked by'),
-            'takeLockText': _('Take over lock'),
-            'formIsLockedByText': _('Form is locked by'),
+            'messages': {
+                'lockedByMeText': _('You are currently editing this'),
+                'lockedByUserText': _('Locked by'),
+                'takeLockText': _('Take over lock'),
+                'formIsLockedByText': _('Form is locked by'),
+                'lockWasTakenByUserText': _('Another user has taken your lock of this form'),
+                'confirmTakeLockText': _('Are you sure you want to remove this lock?'),
+                'networkWarningText': _('Warning! Due to loss of network connectivity '
+                                        'or a server error, you may not be able '
+                                        'to submit this form.'),
+            },
         })
 
     def locking_admin_form_js(self, request, object_id):

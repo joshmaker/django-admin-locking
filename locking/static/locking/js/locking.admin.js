@@ -12,9 +12,9 @@
      */
     var ChangeListView = function (opts) {
         this.currentUser = opts.currentUser;
-        this.api = new locking.API(opts.apiURL);
-        this.lockedByMeText = opts.lockedByMeText;
-        this.lockedByUserText = opts.lockedByUserText;
+        this.api = new locking.API(opts.apiURL, opts.messages);
+        this.lockedByMeText = opts.messages.lockedByMeText;
+        this.lockedByUserText = opts.messages.lockedByUserText;
         this.cookieName = opts.appLabel + opts.modelName + 'unlock';
         this.updateStatus();
         setInterval(this.updateStatus.bind(this), opts.ping * 1000);
@@ -71,8 +71,8 @@
         $('input[type=submit][name="_continue"]').click(function() {
             self.removeLockOnUnload = false;
         });
-        self.takeLockText = opts.takeLockText;
-        self.formIsLockedByText = opts.formIsLockedByText;
+        self.takeLockText = opts.messages.takeLockText;
+        self.formIsLockedByText = opts.messages.formIsLockedByText;
     };
     $.extend(LockingAdminForm.prototype, locking.LockingForm.prototype);
     $.extend(LockingAdminForm.prototype, {

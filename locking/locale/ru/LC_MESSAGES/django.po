@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-08 16:30+0300\n"
+"POT-Creation-Date: 2017-06-09 14:29+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,20 +23,40 @@ msgstr ""
 #, python-brace-format
 msgid ""
 "You cannot {action} this object because it is locked by {name} ({email})"
-msgstr "Вы не можете выполнить {action}, потому что объект редактируется {name} ({email})"
+msgstr "Вы не можете выполнить {action}, поскольку объект редактирует {name}"
+"({email})"
 
-#: locking/admin.py:129
+#: locking/admin.py:94
+msgid "Lock"
+msgstr "Редактирует"
+
+#: locking/admin.py:142
 msgid "You are currently editing this"
-msgstr "Вы сейчас это редактируете"
+msgstr "Редактируется вами"
 
-#: locking/admin.py:130
+#: locking/admin.py:143
 msgid "Locked by"
-msgstr "Редактируется"
+msgstr "Редактирует"
 
-#: locking/admin.py:131
+#: locking/admin.py:144
 msgid "Take over lock"
 msgstr "Редактировать"
 
-#: locking/admin.py:132
+#: locking/admin.py:145
 msgid "Form is locked by"
-msgstr "Редактируется"
+msgstr "Редактирует"
+
+#: locking/admin.py:146
+msgid "Another user has taken your lock of this form"
+msgstr "Другой пользователь принудительно начал редактировать эту статью"
+
+#: locking/admin.py:147
+msgid "Are you sure you want to remove this lock?"
+msgstr "Вы уверены что хотите начать редактирование?"
+
+#: locking/admin.py:148
+msgid ""
+"Warning! Due to loss of network connectivity or a server error, you may not "
+"be able to submit this form."
+msgstr "Внимание! Из-за проблем с подключением к серверу ваши изменения могут "
+"быть потеряны"

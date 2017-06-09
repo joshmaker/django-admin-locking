@@ -20,8 +20,11 @@
      *
      * Makes asynchronous calls to lock or unlock an object
      */
-    locking.API = function(apiURL) {
+    locking.API = function(apiURL, messages) {
         this.apiURL = apiURL;
+        this.lockWasTakenByUserText = messages.lockWasTakenByUserText;
+        this.confirmTakeLockText = messages.confirmTakeLockText;
+        this.networkWarningText = messages.networkWarningText;
     };
     locking.ajax = {
         num_pending: 0,
@@ -134,7 +137,10 @@
             var self = this;
             this.ping = opts.ping;
             this.$form = $(form);
-            this.api = new locking.API(opts.apiURL);
+            this.api = new locking.API(opts.apiURL, opts.messages);
+            this.confirmTakeLockText = opts.messages.confirmTakeLockText;
+            this.networkWarningText = opts.messages.networkWarningText;
+            this.lockWasTakenByUserText = opts.messages.lockWasTakenByUserText;
 
             // Attempt to get a lock
             this.getLock();
@@ -167,14 +173,12 @@
                 error: function(XMLHttpRequest) {
                     if (XMLHttpRequest.status < 200 || XMLHttpRequest.status >= 500) {
                         if (self.hasLock && self.numFailedConnections == 1) {
-                            window.alert('Warning! Due to loss of network connectivity ' +
-                                         'or a server error, you may not be able ' +
-                                         'to submit this form.');
+                            window.alert(self.networkWarningText);
                         }
                         self.numFailedConnections++;
                     } else {
                         if (self.hasLock) {
-                            window.alert('Another user has taken your lock on this form');
+                            window.alert(self.lockWasTakenByUserText);
                         }
                         self.disableForm($.parseJSON(XMLHttpRequest.responseText));
                     }
@@ -240,7 +244,7 @@
         },
 
         takeLock: function() {
-            if (window.confirm('Are you sure you want to remove this lock?')) {
+            if (window.confirm(this.confirmTakeLockText)) {
                 var self = this;
                 this.api.takeLock({
                     success: function() {

@@ -11,8 +11,7 @@
             appLabel: options.appLabel,
             modelName: options.modelName,
             ping: options.ping,
-            takeLockText: options.takeLockText,
-            formIsLockedByText: options.formIsLockedByText
+            messages: options.messages
         });
     });
 })(window.locking);
