@@ -53,12 +53,6 @@ ROOT_URLCONF = 'tests.urls'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.path.pardir, 'assets', 'static'))
 
-if django.VERSION < (1, 8):
-    TEMPLATE_LOADERS = (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
