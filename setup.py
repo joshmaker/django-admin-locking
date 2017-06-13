@@ -2,9 +2,9 @@ from setuptools import find_packages, setup
 
 setup(
     name='django-admin-locking',
-    version='1.3.1',
+    version='1.4',
     url='https://github.com/joshmaker/django-admin-locking/',
-    download_url='https://github.com/joshmaker/django-admin-locking/tarball/v1.3.1',
+    download_url='https://github.com/joshmaker/django-admin-locking/tarball/v1.4',
     license='BSD',
     description='Prevents users from overwriting each others changes in Django.',
     author='Josh West',

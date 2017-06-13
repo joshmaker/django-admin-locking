@@ -1,7 +1,7 @@
 Changelog
 =========
 
-**1.3.1 (June 8, 2017)**
+**1.4 (June 8, 2017)**
 
 * New: localization for messages in admin. Russian locale available
 * Improved: locking.urls could be included with any preferable pattern
