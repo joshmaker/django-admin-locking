@@ -9,7 +9,7 @@ __all__ = ('urlpatterns', )
 admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^admin/locking/', include('locking.urls', namespace='locking'))
+    url(r'^admin/locking/', include('locking.urls'))
 ]
 if settings.GRAPPELLI_INSTALLED:
     urlpatterns = [url(r'^grappelli/', include('grappelli.urls'))] + urlpatterns

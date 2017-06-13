@@ -127,7 +127,7 @@ class LockingAdminMixin(object):
         if object_id is not None:
             reverse_kwargs['object_id'] = object_id
 
-        return reverse('locking:locking-api', kwargs=reverse_kwargs)
+        return reverse('locking-api', kwargs=reverse_kwargs)
 
     def get_json_options(self, request, object_id=None):
         app_label, model_name = self._model_info
