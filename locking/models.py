@@ -80,9 +80,10 @@ class LockingManager(QueryMixin, models.Manager):
 
 class Lock(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
-    locked_by = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'))
+    locked_by = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+                                  on_delete=models.CASCADE)
     date_expires = models.DateTimeField()
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 

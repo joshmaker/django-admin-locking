@@ -1,6 +1,10 @@
 Changelog
 =========
 
+**1.5 (June 28, 2018)**
+
+* Improved support for Django 1.11, with initial support for 2.0
+
 **1.4 (June 8, 2017)**
 
 * New: localization for messages in admin. Russian locale available
