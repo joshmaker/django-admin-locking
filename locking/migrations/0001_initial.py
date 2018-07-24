@@ -19,8 +19,10 @@ class Migration(migrations.Migration):
                 ('id', models.CharField(max_length=15, serialize=False, primary_key=True)),
                 ('date_expires', models.DateTimeField()),
                 ('object_id', models.PositiveIntegerField()),
-                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
-                ('locked_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType',
+                    on_delete=models.CASCADE)),
+                ('locked_by', models.ForeignKey(to=settings.AUTH_USER_MODEL,
+                    on_delete=models.CASCADE)),
             ],
             options={
                 'db_table': getattr(settings, 'LOCKING_DB_TABLE', 'locking_lock'),
