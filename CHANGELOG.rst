@@ -4,6 +4,7 @@ Changelog
 **1.5 (June 28, 2018)**
 
 * Improved support for Django 1.11, with initial support for 2.0
+* Fixed: undefined errors for logged out users on changelist view
 
 **1.4 (June 8, 2017)**
 

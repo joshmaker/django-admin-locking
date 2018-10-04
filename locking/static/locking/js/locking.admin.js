@@ -26,6 +26,12 @@
             $('.locking-status.locked').removeClass('locked').removeAttr('title');
             for (var i = 0; i < data.length; i++) {
                 user = data[i]['locked_by'];
+                // Occasionally the user will be logged out but will still have a browser tab
+                // open with a page calling the locking api.
+                if (!user) {
+                  return;
+                }
+
                 if (user['username'] === self.currentUser) {
                     lockedMessage = self.lockedByMeText;
                     lockedClass = "editing";
