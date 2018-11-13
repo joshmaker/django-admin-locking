@@ -1,11 +1,13 @@
 from __future__ import absolute_import, unicode_literals, division
+import os
 
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.expected_conditions import staleness_of
 
 from .models import BlogArticle
@@ -127,8 +129,9 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self.blog_article = BlogArticle.objects.create(title="title", content="content")
         self.blog_article_2 = BlogArticle.objects.create(title="title 2", content="content 2")
 
-        # Instantiate and login Selenium browser
-        self.browser = webdriver.PhantomJS()
+        # Instantiate and login Selenium browser. You must have chromedriver somewhere
+        # on your path
+        self.browser = webdriver.Chrome()
         self.browser.set_window_size(1120, 550)
         self.browser.set_page_load_timeout(10)
         self.user, self.password = user_factory(BlogArticle)
@@ -213,10 +216,15 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self._wait_for_el('#locking-take-lock')
         self.assert_no_js_errors()
 
+        
+
         self.browser.execute_script('window.locking.lockingFormInstance.hasHadLock = true')
         self.browser.find_element_by_id('locking-take-lock').click()
-        self._wait_until(
-            lambda b: b.execute_script("return (window.locking_test.confirmations > 0)"))
+        
+        WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        self.browser.switch_to_alert().accept()
+        self._wait_for_ajax()
+
         lock = Lock.objects.for_object(self.blog_article)[0]
         self.assertEqual(lock.locked_by.pk, self.user.pk)
 
@@ -230,6 +238,9 @@ class TestLiveAdmin(StaticLiveServerTestCase):
 
         body_el = self.browser.find_element_by_tag_name('body')
         self.browser.find_element_by_id('locking-take-lock').click()
+
+        WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        self.browser.switch_to_alert().accept()
 
         # ensure the page has reloaded
         WebDriverWait(self.browser, 10).until(staleness_of(body_el))
@@ -266,9 +277,9 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         other_user, _ = user_factory(BlogArticle)
         Lock.objects.force_lock_object_for_user(user=other_user, obj=self.blog_article)
 
-        self._wait_until(
-            lambda b: b.execute_script("return (window.locking_test.alerts > 0)"),
-            "Lock lost alert never triggered")
+        WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        self.browser.switch_to_alert().accept()
+
         self.assertTrue(self.browser.find_element_by_id('id_title').get_attribute('disabled'))
         self.assertTrue(self.browser.find_element_by_id('id_content').get_attribute('disabled'))
 
@@ -288,16 +299,13 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         other_user, _ = user_factory(model=BlogArticle)
         Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
         self._login('admin:locking_blogarticle_changelist')
+
         lock_icon = self.browser.find_element_by_id('locking-%s' % self.blog_article.pk)
         old_page_id = self.browser.find_element_by_tag_name('html').id
         lock_icon.click()
-        self._wait_until(
-            lambda b: b.find_element_by_tag_name('html').id != old_page_id,
-            "Wait for page to reload")
-        self._wait_until_page_loaded()
-        self._wait_until(
-            lambda b: b.execute_script("return (window.locking_test.confirmations > 0)"),
-            "Wait for confirmation modal window")
+
+        WebDriverWait(self.browser, 10).until(EC.alert_is_present())
+        self.browser.switch_to_alert().accept()
         self._wait_for_ajax()
 
         lock = Lock.objects.for_object(self.blog_article)[0]

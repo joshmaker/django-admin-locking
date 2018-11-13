@@ -8,8 +8,8 @@ Prevents users from overwriting each others changes in Django.
 
 Django Admin Locking is tested in the following environments
 
-* Python (2.7, 3.4)
-* Django (1.8, 1.9, 1.10, 1.11)
+* Python (2.7, 3.4, 3.5, 3.6, 3.7)
+* Django (1.11, 2.0, 2.1)
 
 ## Installation
 
@@ -67,11 +67,21 @@ If you have a non-zero specified for `LOCKING_DELETE_TIMEOUT_SECONDS` in your se
 
 ## Testing
 
+You will need to install the [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads)
+necessary to interface with your version of Chrome. You must ensure that the driver
+app resides somewhere on your `$PATH`.
+
+
 Running the included test suite requires the following additional requirements:
 
-* Selenium
-* PhantomJS
+* tox
+* tox-venv
 
+```
+$ pip install tox tox-venv
+```
+
+Additionally, for all tests to succeed, you will need Python 2.7 and 3.4-3.7 installed.
 
 ## JavaScript plugins for advanced widgets
 

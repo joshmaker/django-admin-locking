@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals, division
 from django import test
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 
