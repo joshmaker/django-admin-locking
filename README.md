@@ -106,7 +106,7 @@ This app is compatible the popular admin theme [django-grappelli](https://django
 
 This code is licensed under the Simplified BSD License. View the LICENSE file under the root directory for complete license and copyright information.
 
-[build-status-image]: https://api.travis-ci.org/joshmaker/django-admin-locking.svg?branch=master
-[travis]: https://travis-ci.org/joshmaker/django-admin-locking/?branch=master
-[coveralls-status-image]: https://coveralls.io/repos/joshmaker/django-admin-locking/badge.svg?branch=master
-[coveralls]: https://coveralls.io/r/joshmaker/django-admin-locking?branch=master
+[build-status-image]: https://api.travis-ci.org/theatlantic/django-admin-locking.svg?branch=master
+[travis]: https://travis-ci.org/theatlantic/django-admin-locking/?branch=master
+[coveralls-status-image]: https://coveralls.io/repos/theatlantic/django-admin-locking/badge.svg?branch=master
+[coveralls]: https://coveralls.io/r/theatlantic/django-admin-locking?branch=master
