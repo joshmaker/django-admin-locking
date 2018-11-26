@@ -129,9 +129,12 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self.blog_article = BlogArticle.objects.create(title="title", content="content")
         self.blog_article_2 = BlogArticle.objects.create(title="title 2", content="content 2")
 
-        # Instantiate and login Selenium browser. You must have chromedriver somewhere
-        # on your path
-        self.browser = webdriver.Chrome()
+        # Instantiate and login Selenium browser. You must have chromedriver
+        # somewhere on your path
+        # The --no-sandbox option is required for Travis CI
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--no-sandbox')
+        self.browser = webdriver.Chrome(chrome_options=chrome_options)
         self.browser.set_window_size(1120, 550)
         self.browser.set_page_load_timeout(10)
         self.user, self.password = user_factory(BlogArticle)

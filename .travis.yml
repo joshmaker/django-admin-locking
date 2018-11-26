@@ -1,5 +1,10 @@
 language: python
 
+dist: trusty
+
+addons:
+  chrome: stable
+
 python:
   - 2.7
 
@@ -12,6 +17,12 @@ install:
 
 before_script:
   - flake8 --max-line-length=100 --exclude=migrations locking
+  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - sudo mv -f ~/chromedriver /usr/local/share/
+  - sudo chmod +x /usr/local/share/chromedriver
+  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
 
 env:
   - TOXENV=py27-django111
@@ -32,6 +43,8 @@ env:
   - TOXENV=py36-django111-grappelli
 
 script:
+  - whereis google-chrome-stable
+  - whereis chromedriver
   - travis_retry tox
 
 after_success:
