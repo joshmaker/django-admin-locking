@@ -109,3 +109,22 @@ class TestLock(test.TestCase):
             object_id=self.article1.pk)
         updated_lock = Lock.objects.force_lock_object_for_user(self.article1, self.user)
         self.assertGreater(updated_lock.date_expires, lock.date_expires)
+
+    def test_unlock_for_user_deletes_object(self):
+        lock = Lock.objects.create(locked_by=self.user, content_type=self.article_ct,
+            object_id=self.article1.pk)
+
+        Lock.objects.unlock_for_user(content_type=self.article_ct,
+            object_id=self.article1.pk, user=self.user)
+
+        self.assertFalse(Lock.objects.filter(pk=lock.pk).exists())
+
+    def test_unlock_for_other_user_doesnt_deletes_object(self):
+        lock = Lock.objects.create(locked_by=self.user, content_type=self.article_ct,
+            object_id=self.article1.pk)
+
+        new_user, _ = user_factory()
+
+        self.assertRaises(Lock.ObjectLockedError, Lock.objects.unlock_for_user,
+            content_type=self.article_ct, object_id=self.article1.pk, user=new_user)
+        self.assertTrue(Lock.objects.filter(pk=lock.pk).exists())

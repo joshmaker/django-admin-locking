@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals, division
 
 from django.conf.urls import url
 
-from .api import LockAPIView
+from .api import LockAPIView, DeleteBeacon
 
 __all__ = ('urlpatterns', )
 
@@ -12,4 +12,7 @@ urlpatterns = [
 
     url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/$',
         LockAPIView.as_view(), name='locking-api'),
+
+    url(r'api/lock/(?P<app>[\w-]+)/(?P<model>[\w-]+)/(?P<object_id>\d+)/delete-beacon/$',
+        DeleteBeacon.as_view(), name='locking-api-delete-beacon'),
 ]

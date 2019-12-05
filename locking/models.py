@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from .settings import DEFAULT_EXPIRATION_SECONDS
+from .settings import DEFAULT_EXPIRATION_SECONDS, DEFAULT_DELETE_TIMEOUT_SECONDS
 
 
 __all__ = ('Lock', )
@@ -26,6 +26,30 @@ class LockingManager(QueryMixin, models.Manager):
     def delete_expired(self):
         """Delete all expired locks from the database"""
         self.filter(date_expires__lt=timezone.now()).delete()
+
+    def unlock_for_user(self, content_type, object_id, user):
+        """
+        Delete's a given user's lock on an object
+
+        If the lock exists, but it belongs to another user, raise an
+        `ObjectLockedError` instead of deleting it
+        """
+        try:
+            lock = self.get(content_type=content_type, object_id=object_id)
+        except Lock.DoesNotExist:
+            pass
+        else:
+            if lock.locked_by == user:
+                seconds = getattr(settings,
+                                  'LOCKING_DELETE_TIMEOUT_SECONDS',
+                                  DEFAULT_DELETE_TIMEOUT_SECONDS)
+                if seconds <= 0:
+                    lock.delete()
+                else:
+                    lock.expire(seconds)
+            else:
+                raise Lock.ObjectLockedError(
+                    'This object is locked by another user', lock=lock)
 
     def lock_for_user(self, content_type, object_id, user):
         """

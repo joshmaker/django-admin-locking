@@ -54,8 +54,12 @@
         lock: function(opts) {
             this.ajax($.extend({'type': 'POST'}, opts));
         },
-        unlock: function(opts) {
-            this.ajax($.extend({'type': 'DELETE'}, opts));
+
+        /* Normal AJAX calls are blocked by browser on unload events, so we
+         * have to use the `navigator.sendBeacon` method instead
+         */
+        unlock: function() {
+            navigator.sendBeacon(this.apiURL + "delete-beacon/");
         },
         takeLock: function(opts) {
             this.ajax($.extend({'type': 'PUT'}, opts));
@@ -151,10 +155,7 @@
             // Unlock the form when leaving the page
             $(window).on('beforeunload submit', function() {
                 if (self.hasLock && self.removeLockOnUnload) {
-                    // We have to assure that our unlock request gets
-                    // through before the user leaves the page, so it
-                    // shouldn't run asynchronously.
-                    self.api.unlock({'async': false});
+                    self.api.unlock();
                     self.hasLock = false;
                 }
             });

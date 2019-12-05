@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals, division
 
 from collections import Iterable
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
@@ -12,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 from .models import Lock
-from .settings import DEFAULT_DELETE_TIMEOUT_SECONDS
 
 __all__ = ('LockAPIView', )
 
@@ -26,9 +24,7 @@ class LockingJsonResponse(JsonResponse):
         super(LockingJsonResponse, self).__init__(data, encoder, safe, **kwargs)
 
 
-class LockAPIView(View):
-
-    http_method_names = ['get', 'post', 'delete', 'put']
+class BaseAPIView(View):
 
     @method_decorator(csrf_exempt)
     @method_decorator(login_required)
@@ -47,7 +43,12 @@ class LockAPIView(View):
         if not object_id and request.method != 'GET':
             return HttpResponse(status=405)
 
-        return super(LockAPIView, self).dispatch(request, app, model, object_id)
+        return super(BaseAPIView, self).dispatch(request, app, model, object_id)
+
+
+class LockAPIView(BaseAPIView):
+
+    http_method_names = ['get', 'post', 'delete', 'put']
 
     def get(self, request, app, model, object_id=None):
         locks = (Lock.objects.filter(content_type=self.lock_ct_type)
@@ -76,27 +77,39 @@ class LockAPIView(View):
     def delete(self, request, app, model, object_id):
         """
         Remove a lock from an object
-
-        If a non-zero value for `LOCKING_DELETE_TIMEOUT_SECONDS` is specified in
-        settings, the lock is set to epxire in that many seconds rather than
-        deleted instantly
         """
         try:
-            lock = Lock.objects.get(content_type=self.lock_ct_type,
-                                    object_id=object_id)
-        # The lock never existed or has already been removed
-        except Lock.DoesNotExist:
+            Lock.objects.unlock_for_user(content_type=self.lock_ct_type,
+                                         object_id=object_id,
+                                         user=request.user)
+        except Lock.ObjectLockedError:
+            # If the lock belongs to another user
+            return HttpResponse(status=401)
+        else:
             return HttpResponse(status=204)
 
-        # Check if the lock belongs to the user
-        if lock.locked_by != request.user:
-            return HttpResponse(status=401)
 
-        seconds = getattr(settings,
-                          'LOCKING_DELETE_TIMEOUT_SECONDS',
-                          DEFAULT_DELETE_TIMEOUT_SECONDS)
-        if seconds == 0:
-            lock.delete()
+class DeleteBeacon(BaseAPIView):
+    """
+    Handle's calls to unlock an object when the user navigates away from the page
+
+    Modern webbrowsers no longer allow blocking AJAX calls on unload events, so
+    our JavaScript must use the `navigator.sendBeacon` instead. Because this
+    method can only make POST requests, we can't follow our normal RESTful API
+    methods used by our main API class
+    """
+    http_method_names = ['post']
+
+    def post(self, request, app, model, object_id):
+        """
+        Remove a lock from an object
+        """
+        try:
+            Lock.objects.unlock_for_user(content_type=self.lock_ct_type,
+                                         object_id=object_id,
+                                         user=request.user)
+        except Lock.ObjectLockedError:
+            # If the lock belongs to another user
+            return HttpResponse(status=401)
         else:
-            lock.expire(seconds)
-        return HttpResponse(status=204)
+            return HttpResponse(status=204)

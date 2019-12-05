@@ -56,3 +56,11 @@ class LockingClient(object):
 
     def delete(self, *args, **kwargs):
         return self.client.delete(self.url, *args, **kwargs)
+
+    def delete_beacon(self, *args, **kwargs):
+        url = reverse('locking-api-delete-beacon', kwargs={
+            'app': self.instance._meta.app_label,
+            'model': self.instance._meta.object_name,
+            'object_id': self.instance.pk,
+        })
+        return self.client.post(url, *args, **kwargs)

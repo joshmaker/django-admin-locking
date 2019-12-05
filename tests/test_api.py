@@ -155,3 +155,30 @@ class TestAPI(test.TestCase):
         lock_expiration = Lock.objects.filter(pk=lock.pk).values_list('date_expires', flat=True)[0]
         expected_expiration = timezone.now() + timezone.timedelta(seconds=5)     
         self.assertAlmostEqual(lock_expiration, expected_expiration, delta=timezone.timedelta(seconds=0.5))
+
+    def test_delete_beacon(self):
+        """POST request to delete beacon API should remove locks made by that user"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        Lock.objects.create(locked_by=client.user,
+                            content_type=self.article_content_type,
+                            object_id=self.blog_article.pk)
+        self.assertEqual(client.delete_beacon().status_code, 204)
+        self.assertEqual(Lock.objects.count(), 0)
+
+    def test_delete_beacon_nonexistent_lock(self):
+        """Calling delete beacon on an already delete lock should not raise an exception"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        self.assertEqual(client.delete_beacon().status_code, 204)
+
+    def test_delete_beacon_for_other_user(self):
+        """POST request to delete beacon API should not remove lock made by other users"""
+        client = LockingClient(self.blog_article)
+        client.login_new_user()
+        other_user, _ = user_factory(self.blog_article)
+        Lock.objects.create(locked_by=other_user,
+                            content_type=self.article_content_type,
+                            object_id=self.blog_article.pk)
+        self.assertEqual(client.delete_beacon().status_code, 401)
+        self.assertEqual(Lock.objects.count(), 1)
