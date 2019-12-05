@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.expected_conditions import staleness_of
+from selenium.webdriver.chrome.options import Options
 
 from .models import BlogArticle
 from .utils import user_factory
@@ -131,7 +132,11 @@ class TestLiveAdmin(StaticLiveServerTestCase):
 
         # Instantiate and login Selenium browser. You must have chromedriver somewhere
         # on your path
-        self.browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument('--disable-gpu')
+        self.browser = webdriver.Chrome(chrome_options=chrome_options)
         self.browser.set_window_size(1120, 550)
         self.browser.set_page_load_timeout(10)
         self.user, self.password = user_factory(BlogArticle)

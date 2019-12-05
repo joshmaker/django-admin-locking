@@ -1,6 +1,20 @@
+dist: bionic
+
 language: python
 
-sudo: false
+addons:
+  chrome: stable
+
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+  - "$HOME/.pyenv"
+
+before_install:
+  - wget https://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip;
+  - mkdir $HOME/.chromedriver;
+  - unzip chromedriver_linux64.zip -d $HOME/.chromedriver;
+  - export PATH=$PATH:$HOME/.chromedriver
 
 install:
   - pip install flake8
@@ -46,7 +60,7 @@ matrix:
       env: TOXENV=py38-django30
 
 script:
-  - travis_retry tox
+  - tox
 
 after_success:
-  coveralls
+  - coveralls
