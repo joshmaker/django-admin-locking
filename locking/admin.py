@@ -181,7 +181,7 @@ class LockingAdminMixin(object):
             except NameError:  # basestring does not exist in Python3
                 str_type = str
             if isinstance(context['media'], str_type):
-                locking_media = unicode(locking_media)
+                locking_media = u"%s" % locking_media
             context['media'] += locking_media
         return super(LockingAdminMixin, self).render_change_form(
             request, context, add=add, obj=obj, **kwargs)
