@@ -107,7 +107,7 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         WebDriverWait(self.browser, 10).until(callback, msg)
 
     def _wait_until_page_loaded(self):
-        self._wait_until(lambda b: b.find_element_by_tag_name('body'))
+        self._wait_until(lambda b: b.execute_script('return document.readyState === "complete"'))
 
     def _wait_for_ajax(self):
         self._wait_until(
@@ -174,8 +174,9 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self._load('admin:locking_blogarticle_changelist')
 
         # Check that lock was deleted
-        locks = Lock.objects.for_object(self.blog_article)
-        self.assertEqual(len(locks), 0)
+        # We use a `_wait_until` to avoid race condition where page loads before
+        # the sendBeacond API call goes through
+        self._wait_until(lambda b: not Lock.objects.for_object(self.blog_article).exists())
 
     def test_changeform_locked_by_other_user(self):
         other_user, _ = user_factory(model=BlogArticle)
@@ -220,8 +221,6 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         self._login('admin:locking_blogarticle_change', self.blog_article.pk)
         self._wait_for_el('#locking-take-lock')
         self.assert_no_js_errors()
-
-        
 
         self.browser.execute_script('window.locking.lockingFormInstance.hasHadLock = true')
         self.browser.find_element_by_id('locking-take-lock').click()
@@ -269,11 +268,11 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         # Wait for the page to reload
         self._wait_until(lambda b: b.find_element_by_tag_name('html').id != old_page_id)
         self._wait_until_page_loaded()
-        self.assertTrue('locked by' in self.browser.page_source)
         new_title = BlogArticle.objects.filter(pk=self.blog_article.pk).values_list('title', flat=True)[0]
 
         # The title should not have changed
         self.assertEqual(old_title, new_title)
+        self.assertTrue(u'locked by' in self.browser.page_source)
 
     def test_locked_form_loses_lock(self):
         self._login('admin:locking_blogarticle_change', self.blog_article.pk)
@@ -294,8 +293,11 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
 
         self._login('admin:locking_blogarticle_changelist')
+        self._wait_until_page_loaded()
         self.assert_no_js_errors()
+        self._wait_for_el('#locking-%s' % self.blog_article.pk)
         elem_1 = self.browser.find_element_by_id('locking-%s' % self.blog_article.pk)
+        self._wait_for_el('#locking-%s' % self.blog_article_2.pk)
         elem_2 = self.browser.find_element_by_id('locking-%s' % self.blog_article_2.pk)
         self.assertTrue('locked' in elem_1.get_attribute('class'))
         self.assertFalse('locked' in elem_2.get_attribute('class'))
@@ -305,6 +307,7 @@ class TestLiveAdmin(StaticLiveServerTestCase):
         Lock.objects.force_lock_object_for_user(self.blog_article, other_user)
         self._login('admin:locking_blogarticle_changelist')
 
+        self._wait_for_el('#locking-%s' % self.blog_article.pk)
         lock_icon = self.browser.find_element_by_id('locking-%s' % self.blog_article.pk)
         old_page_id = self.browser.find_element_by_tag_name('html').id
         lock_icon.click()
