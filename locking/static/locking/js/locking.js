@@ -27,9 +27,10 @@
         this.networkWarningText = messages.networkWarningText;
     };
     locking.ajax = {
-        num_pending: 0,
-        has_pending: function () {
-            return (this.num_pending > 0);
+        num: 0,
+        pending: {},
+        has_pending: function() {
+          return Object.keys(this.pending).length > 0;
         }
     };
     $.extend(locking.API.prototype, {
@@ -40,7 +41,6 @@
                 cache: false
             };
             var self = this;
-            this._onAjaxStart();
             if ('complete' in opts) {
                 if (!$.isArray(opts.complete)) {
                     opts.complete = [opts.complete];
@@ -48,8 +48,19 @@
             } else {
                 opts.complete = [];
             }
-            opts.complete.push(self._onAjaxEnd);
-            $.ajax($.extend(defaults, opts));
+            var num = locking.ajax.num + 1;
+            opts.complete.push(function() {
+                delete locking.ajax.pending[num];
+            });
+            var request = $.ajax($.extend(defaults, opts));
+            locking.ajax.pending[num] = request;
+            locking.ajax.num = num;
+        },
+        abortPending: function() {
+            $.each(locking.ajax.pending, function(i, request) {
+                request.abort();
+            });
+            locking.ajax.pending = {};
         },
         lock: function(opts) {
             this.ajax($.extend({'type': 'POST'}, opts));
@@ -63,12 +74,6 @@
         },
         takeLock: function(opts) {
             this.ajax($.extend({'type': 'PUT'}, opts));
-        },
-        _onAjaxStart: function() {
-            locking.ajax.num_pending++;
-        },
-        _onAjaxEnd: function() {
-            locking.ajax.num_pending--;
         }
     });
 
@@ -249,6 +254,7 @@
                 var self = this;
                 this.api.takeLock({
                     success: function() {
+                        self.api.abortPending();
                         self.enableForm();
                     }
                 });
